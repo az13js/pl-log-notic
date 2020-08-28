@@ -27,7 +27,7 @@ module.exports = {
           {
             loader: MiniCssExtractPlugin.loader,
             options: {
-              publicPath: '/console/static/',
+              publicPath: '/static/',
             }
           },
           'css-loader',
@@ -60,7 +60,7 @@ module.exports = {
           {
             loader: MiniCssExtractPlugin.loader,
             options: {
-              publicPath: '/console/static/',
+              publicPath: './static/',
             }
           },
           'css-loader',
@@ -77,8 +77,8 @@ module.exports = {
   },
   output: {
     filename: '[name].[contenthash].js',
-    path: path.resolve(__dirname, 'public/console/static'),
-    publicPath: "/console/static/",
+    path: path.resolve(__dirname, 'public/static'),
+    publicPath: "./static",
   },
   plugins: [
     new CleanWebpackPlugin(),
@@ -94,7 +94,7 @@ module.exports = {
           content: 'pl-log-notic'
         }
       ],
-      title: 'Pole',
+      title: 'pl-log-notic',
       window: {
         env: {
           apiHost: 'http://127.0.0.1'

@@ -4,20 +4,30 @@
 
 允许定期从日志中获取信息，然后自由匹配特定模式的文本，并提取其中的一些内容，发出通知的通用系统。
 
-## 前端页面构建
+## 安装构建静态文件所需的模块，以及构建静态文件
 
-### 安装构建环境
+安装构建所需的模块
 
+    cd webpage
     npm install
 
 注：速度慢可以更换淘宝的源
 
-    npm config set registry https://registry.npm.taobao.org
-
-### 构建页面
-
     cd webpage
+    npm config set registry https://registry.npm.taobao.org
+    npm install
+
+然后构建页面
+
     npm run build
+
+构建出来的静态文件位于`webpage/public/`目录下，手动拷贝它们到`pladmin/pltplconf/templates/pltplconf/`，然后把`index.html`进行模板标签替换，最后把静态文件移动到`pladmin/pltplconf/static`。
+
+## 使用`Makefile`构建
+
+你可能想使用`Makefile`，因为这样就不需要每次执行构建、手动拷贝再替换标签了：
+
+    make clean && make
 
 ## 服务环境部署
 
