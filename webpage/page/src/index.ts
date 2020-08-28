@@ -9,7 +9,6 @@ Vue.prototype.$axios = axios;
 Vue.use(VueRouter);
 
 const routes: RouteConfig[] = [
-  { name: "root", path: "/", component: FileList }
 ]
 
 new Vue({
