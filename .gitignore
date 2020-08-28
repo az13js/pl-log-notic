@@ -17,3 +17,8 @@ __pycache__
 # 忽略生成的数据库文件
 pladmin/db.sqlite3
 
+# 忽略 nodejs 的模块
+webpage/node_modules
+# 忽略页面项目的相关构建文件
+webpage/package-lock.json
+

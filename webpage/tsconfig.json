@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "outDir": "./public/console/",
+    "noImplicitAny": true,
+    "module": "commonjs",
+    "target": "es5",
+    "jsx": "react",
+    "allowJs": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "types": [
+      "vuetify"
+    ],
+    "experimentalDecorators": true
+  }
+}
