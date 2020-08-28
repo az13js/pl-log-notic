@@ -1,0 +1,19 @@
+# 忽略本地临时使用的开发脚本
+tool_*.sh
+# 忽略本地临时使用的开发脚本
+tool_*.bat
+# 忽略备份的压缩文件
+*.gz
+*.zip
+*.bz2
+# 忽略DEBUG文件
+gmon.out
+# 忽略缓存
+__pycache__
+# 忽略项目配置
+.idea
+.vscode
+
+# 忽略生成的数据库文件
+pladmin/db.sqlite3
+
