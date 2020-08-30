@@ -8,7 +8,7 @@ pladmin/pltplconf/templates/pltplconf/index.html:webpage/public/index.html
 
 .PHONLY:clean
 clean:
-	rm -fr webpage/public && rm -rf pladmin/pltplconf/templates/pltplconf && rm -rf 
+	rm -fr webpage/public && rm -rf pladmin/pltplconf/templates && rm -rf pladmin/pltplconf/static
 
 
 
