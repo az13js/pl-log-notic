@@ -16,6 +16,7 @@ __pycache__
 
 # 忽略生成的数据库文件
 pladmin/db.sqlite3
+pladmin/db.sqlite3-journal
 # 忽略保存在服务器端项目中的静态文件，因为这部分是通过webpack生成并人为拷贝进去的不需要git跟踪
 pladmin/pltplconf/templates
 pladmin/pltplconf/static
