@@ -41,6 +41,13 @@
 
     pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 
+### 启动定时任务
+
+    cd pladmin
+    python3 manage.py scheduler
+
+注：这命令不会自己转后台，最好配置`supervisor`去监控。如果使用`sqlite3`的话可能出现数据库锁定导致操作错误，这种情况它会自己尝试继续运行，并发低的时候问题不大。
+
 ### 运行服务器
 
     cd pladmin
