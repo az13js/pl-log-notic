@@ -59,6 +59,11 @@
 
 浏览器访问`http://127.0.0.1:9210/`。
 
+### 创建超级用户
+
+    cd pladmin
+    python3 manage.py createsuperuser
+
 
 
 

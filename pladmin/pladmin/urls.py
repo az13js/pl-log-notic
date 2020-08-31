@@ -17,6 +17,8 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
-    path('pltplconf/', include('pltplconf.urls')),
+    # TODO 有空的时候再去调整
+    #path('/', include('pltplconf.urls')),
+    #path('', include('pltplconf.urls')),
     path('admin/', admin.site.urls),
 ]

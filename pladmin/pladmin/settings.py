@@ -31,14 +31,15 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'pltplconf.apps.PltplconfConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_apscheduler',
-    'pltplconf',
+    #'django_apscheduler',
+    #'pltplconf',
 ]
 
 MIDDLEWARE = [
@@ -125,4 +126,4 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # 定时任务时间格式
-APSCHEDULER_DATETIME_FORMAT =  "N j, Y, f:s a"
+# APSCHEDULER_DATETIME_FORMAT =  "N j, Y, f:s a"

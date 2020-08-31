@@ -1,1 +1,1 @@
-default_app_config = 'pltplconf.apps.PltplconfConfig'
+#default_app_config = 'pltplconf.apps.PltplconfConfig'
