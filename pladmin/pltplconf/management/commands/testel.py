@@ -7,9 +7,10 @@ class Command(BaseCommand):
     help = "测试搜索"
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.SUCCESS("命令开始执行"))
         es = Elasticsearch(["127.0.0.1"], http_compress=True)
-        print(es.ping())
+        if False == es.ping():
+            self.stdout.write(self.style.ERROR("ping失败"))
+            return False
         print(es.info())
         print(es.cluster.health())
         print(es.cluster.stats())
