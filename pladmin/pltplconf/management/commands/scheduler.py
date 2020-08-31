@@ -3,8 +3,9 @@
 from django.core.management.base import BaseCommand, CommandError
 from pltplconf.models import Pljob
 from django.utils import timezone
-from datetime import datetime, timedelta
+from datetime import timedelta
 import time
+from elasticsearch import Elasticsearch
 
 class Command(BaseCommand):
     help = "开启定时任务"
