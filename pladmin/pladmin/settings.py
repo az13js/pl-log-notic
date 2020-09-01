@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
@@ -19,11 +20,22 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '+&=ul0qc_9=&0^y8bw6y5fyu3wd@v#e8w7pb)%z@hc60=lo6fy'
+# 注意，在生产环境，请使用环境变量 SECRET_KEY 来配置。
+if "SECRET_KEY" in os.environ:
+    SECRET_KEY = os.environ["SECRET_KEY"]
+else:
+    # 下面这个初始化项目就有的，应该仅用于本地开发
+    SECRET_KEY = '+&=ul0qc_9=&0^y8bw6y5fyu3wd@v#e8w7pb)%z@hc60=lo6fy'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# 如果是生产环境，那么关闭 Debug 模式
+if ("ENV" in os.environ) and ("production" == os.environ["ENV"]):
+    DEBUG = False
+else:
+    DEBUG = True
+
+# 就算不是生产环境，明确设置环境变量 DEBUG=False 那么也关闭 DEBUG 模式
+if ("DEBUG" in os.environ) and ("False" == os.environ["DEBUG"]):
+    DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -125,5 +137,27 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# 定时任务时间格式
-# APSCHEDULER_DATETIME_FORMAT =  "N j, Y, f:s a"
+# 模块
+PL_PIPLINES = [
+    'pltplconf.management.commands.Piplines.OrderCreate'
+]
+
+# 日志处理
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+}
+
+# 在DEBUG模式下启用大量日志输出
+if DEBUG:
+    LOGGING['root']['level'] = 'DEBUG'
+
