@@ -12,6 +12,7 @@ class DefaultLogFormate():
 
     # 分析规则
     rules = [
+        {"start": "[请求数据]:", "end": "[响应数据]:"},
         {"start": "[响应数据]:", "end": "[响应耗时]:"}
     ]
 
@@ -20,19 +21,30 @@ class DefaultLogFormate():
         success = fail = 0
         results = json.loads(contents)
         failResults = []
+        failOrderSn = []
         for log in results['responses']:
             for unit in log['hits']['hits']:
                 for message in unit['fields']['message']:
+                    orderSn = ""
                     for analysisInfo in self.analysis(message):
                         if analysisInfo['rule'] == 0:
+                            request = json.loads(analysisInfo['str'])
+                            orderSn = request["params"]["channel_order_sn"]
+                        if analysisInfo['rule'] == 1:
                             respond = json.loads(analysisInfo['str'])
                             if 0 == respond['code']:
-                                success = success + 1
+                                isSuccess = True
                             else:
-                                fail = fail + 1
-                                if len(failResults) < 10:
-                                    failResults.append(analysisInfo['str'])
-        return {"total": success + fail, "success": success, "fail": fail, "failResults": failResults}
+                                isSuccess = False
+                    if isSuccess:
+                        success = success + 1
+                    else:
+                        fail = fail + 1
+                        if len(failResults) < 10:
+                            failResults.append(analysisInfo['str'])
+                        if len(failOrderSn) < 10:
+                            failOrderSn.append(orderSn)
+        return {"total": success + fail, "success": success, "fail": fail, "failResults": failResults, "failOrderSn": failOrderSn}
 
     def analysis(self, message):
         """分析日志文本"""

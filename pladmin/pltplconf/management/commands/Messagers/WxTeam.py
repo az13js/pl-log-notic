@@ -15,7 +15,11 @@ class WxTeam():
         if 0 == params["fail"]:
             messageText = "Hi，在最近的 " + str(params["total"]) + " 笔订单中，成功的有 " + str(params["success"]) + " 笔，失败的有 " + str(params["fail"]) + " 笔。"
         else:
-            messageText = "Hi，在最近的 " + str(params["total"]) + " 笔订单中，成功的有 " + str(params["success"]) + " 笔，失败的有 " + str(params["fail"]) + " 笔。\n部分失败返回结果为："
+            messageText = "Hi，在最近的 " + str(params["total"]) + " 笔订单中，成功的有 " + str(params["success"]) + " 笔，失败的有 " + str(params["fail"]) + " 笔。"
+            messageText = messageText + "\n失败订单（最后10条内）为："
+            for res in params["failOrderSn"]:
+                messageText = messageText + "\n" + res            
+            messageText = messageText + "\n失败返回结果（最后10条内）为："
             for res in params["failResults"]:
                 messageText = messageText + "\n" + res
         data = {
