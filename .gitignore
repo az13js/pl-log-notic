@@ -14,6 +14,10 @@ __pycache__
 .idea
 .vscode
 
+# 忽略实际上使用的配置文件。默认使用的pladmin/pladmin/settings.py只是临时用。
+# 通过设置 DJANGO_SETTINGS_MODULE=pladmin.real_settings 指定
+pladmin/pladmin/real_settings.py
+
 # 忽略生成的数据库文件
 pladmin/db.sqlite3
 pladmin/db.sqlite3-journal

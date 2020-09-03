@@ -19,6 +19,7 @@ class DefaultLogFormate():
         """分析ES搜索到的记录，返回所需的信息"""
         success = fail = 0
         results = json.loads(contents)
+        failResults = []
         for log in results['responses']:
             for unit in log['hits']['hits']:
                 for message in unit['fields']['message']:
@@ -29,7 +30,9 @@ class DefaultLogFormate():
                                 success = success + 1
                             else:
                                 fail = fail + 1
-        return {"total": success + fail, "success": success, "fail": fail}
+                                if len(failResults) < 10:
+                                    failResults.append(analysisInfo['str'])
+        return {"total": success + fail, "success": success, "fail": fail, "failResults": failResults}
 
     def analysis(self, message):
         """分析日志文本"""

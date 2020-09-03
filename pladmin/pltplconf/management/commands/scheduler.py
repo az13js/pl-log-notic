@@ -42,10 +42,6 @@ class Command(BaseCommand):
                 if stop_time_second > 0:
                     self.stdout.write(self.style.SUCCESS("暂停 " + str(stop_time_second) + " 秒"))
                     time.sleep(stop_time_second) # 暂停一段时间，可能凑够self.delay_sec秒
-
-            except OperationalError:
-                self.stdout.write(self.style.ERROR("DB操作错误"))
-                exit(1)
             except KeyboardInterrupt:
                 self.stdout.write(self.style.SUCCESS("停止执行"))
                 exit(0)

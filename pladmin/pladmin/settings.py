@@ -142,6 +142,16 @@ PL_PIPLINES = [
     'pltplconf.management.commands.Piplines.OrderCreate'
 ]
 
+# es地址
+ES_ADDRESS = {
+    'ip': '127.0.0.1',
+    'host': 'www.example.com.cn'
+}
+
+MESSAGERS_CONFIG = {
+    "WxTeam": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=0000000000000000000"
+}
+
 # 日志处理
 LOGGING = {
     'version': 1,
