@@ -139,7 +139,7 @@ STATIC_URL = '/static/'
 
 # 模块
 PL_PIPLINES = [
-    'pltplconf.management.commands.Piplines.OrderCreate'
+    'pltplconf.management.commands.Piplines.OrderSystemCommon'
 ]
 
 # es地址

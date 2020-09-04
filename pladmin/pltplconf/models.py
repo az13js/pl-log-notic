@@ -7,7 +7,8 @@ class Pljob(models.Model):
     next_exec_time = models.DateTimeField("下一次执行时间")
     delay_sec = models.IntegerField("延迟的时间（秒）")
     job_name = models.CharField("任务名称", max_length=100)
-    wx_address = models.URLField("消息通知地址", max_length=400)
+    es_query = models.CharField("查询命令", max_length=300, default="")
+    es_query_num = models.IntegerField("查询数量", default=1)
 
     def __str__(self):
         if hasattr(self, "id"):
