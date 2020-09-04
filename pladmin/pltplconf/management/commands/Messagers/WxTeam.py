@@ -18,10 +18,14 @@ class WxTeam():
             messageText = "Hi，在最近的 " + str(params["total"]) + " 笔订单中，成功的有 " + str(params["success"]) + " 笔，失败的有 " + str(params["fail"]) + " 笔。"
             messageText = messageText + "\n失败订单（最后10条内）为："
             for res in params["failOrderSn"]:
-                messageText = messageText + "\n" + res            
+                messageText = messageText + "\n" + str(res)
             messageText = messageText + "\n失败返回结果（最后10条内）为："
             for res in params["failResults"]:
-                messageText = messageText + "\n" + res
+                messageText = messageText + "\n" + str(res)
+            # str(res)而不是直接取res是因为出现这个报错：
+            # TypeError: can only concatenate str (not "int") to str
+            # 出错的位置是for res in params["failOrderSn"]那个地方
+            # 估计是failOrderSn里面，有一个是用int类型而不是string类型作为了订单号
         data = {
             "msgtype": "text",
             "text": {
