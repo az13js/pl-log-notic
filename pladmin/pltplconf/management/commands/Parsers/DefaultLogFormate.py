@@ -29,7 +29,7 @@ class DefaultLogFormate():
                     for analysisInfo in self.analysis(message):
                         if analysisInfo['rule'] == 0:
                             request = json.loads(analysisInfo['str'])
-                            if "channel_order_sn" in request["params"]:
+                            if ("params" in request) and ("channel_order_sn" in request["params"]):
                                 orderSn = request["params"]["channel_order_sn"]
                             else:
                                 orderSn = "此记录没有订单号"
