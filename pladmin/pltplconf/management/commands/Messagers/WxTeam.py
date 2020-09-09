@@ -13,9 +13,9 @@ class WxTeam():
     def send(self, job, params):
         logger.debug("向企业微信群发送消息")
         if 0 == params["fail"]:
-            messageText = "Hi，在最近的 " + str(params["total"]) + " 个请求中，成功的有 " + str(params["success"]) + " 个，失败的有 " + str(params["fail"]) + " 个。"
+            messageText = "【" + params["job_name"] + "】\nHi，在最近的 " + str(params["total"]) + " 个请求中，成功的有 " + str(params["success"]) + " 个，失败的有 " + str(params["fail"]) + " 个。"
         else:
-            messageText = "Hi，在最近的 " + str(params["total"]) + " 个请求中，成功的有 " + str(params["success"]) + " 个，失败的有 " + str(params["fail"]) + " 个。"
+            messageText = "【" + params["job_name"] + "】\nHi，在最近的 " + str(params["total"]) + " 个请求中，成功的有 " + str(params["success"]) + " 个，失败的有 " + str(params["fail"]) + " 个。"
             messageText = messageText + "\n失败订单（最后10条内）为："
             for res in params["failOrderSn"]:
                 messageText = messageText + "\n" + str(res)

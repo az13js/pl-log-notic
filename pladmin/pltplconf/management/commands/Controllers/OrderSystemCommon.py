@@ -13,6 +13,7 @@ class OrderSystemCommon():
         logger.debug("控制器开始执行")
         queryLog = OrderSystemCommonAnalysis().findLogs(job.es_query, job.es_query_num)
         params = DefaultLogFormate().parse(queryLog)
+        params['job_name'] = job.job_name
         if params['fail'] > 0:
             WxTeam().send(job, params)
         logger.debug("控制器执行完成")

@@ -9,6 +9,10 @@ class Pljob(models.Model):
     job_name = models.CharField("任务名称", max_length=100)
     es_query = models.CharField("查询命令", max_length=300, default="")
     es_query_num = models.IntegerField("查询数量", default=1)
+    # system_type
+    # 0 默认系统，SLOG，普通接口请求
+    # 1 XLOG
+    system_type = models.IntegerField("系统类型", default=0)
 
     def __str__(self):
         if hasattr(self, "id"):

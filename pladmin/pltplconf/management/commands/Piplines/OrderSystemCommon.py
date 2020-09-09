@@ -11,8 +11,9 @@ class OrderSystemCommon():
         self.OrderSystemCommonController = OrderSystemCommonController()
 
     def handle(self, job):
-        logger.debug("OrderSystemCommonController流水线，正在处理，job=" + str(job))
-        self.OrderSystemCommonController.successSummary(job)
+        if 0 == job.system_type:
+            logger.debug("OrderSystemCommonController流水线，正在处理，job=" + str(job))
+            self.OrderSystemCommonController.successSummary(job)
 
 
 
