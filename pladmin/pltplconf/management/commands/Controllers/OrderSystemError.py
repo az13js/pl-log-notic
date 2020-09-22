@@ -17,7 +17,7 @@ class OrderSystemError():
         if params['total'] > 0:
             WxTeamErrorLog().send(job, params)
         logger.debug("OrderSystemError 控制器执行完成")
-        exit()
+
 
 
 
