@@ -9,9 +9,9 @@ import json
 
 logger = logging.getLogger(__name__)
 
-class WxTeamXLog():
+class WxTeamErrorLog():
     def send(self, job, params):
-        logger.debug("WxTeamXLog向企业微信群发送消息")
+        logger.debug("WxTeamErrorLog向企业微信群发送消息")
         messageText = "【" + params["job_name"] + "】\nHi，查询到 " + str(params["total"]) + " 个。\n"
         display = 0
         for text in params["errorMessages"]:

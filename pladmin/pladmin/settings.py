@@ -141,7 +141,8 @@ STATIC_URL = '/static/'
 PL_PIPLINES = [
     'pltplconf.management.commands.Piplines.OrderSystemCommon',
     'pltplconf.management.commands.Piplines.XLogSystemQuery',
-    'pltplconf.management.commands.Piplines.MLSystemQuery'
+    'pltplconf.management.commands.Piplines.MLSystemQuery',
+    'pltplconf.management.commands.Piplines.OrderSystemError'
 ]
 
 # es地址

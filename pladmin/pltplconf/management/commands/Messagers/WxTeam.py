@@ -16,10 +16,10 @@ class WxTeam():
             messageText = "【" + params["job_name"] + "】\nHi，在最近的 " + str(params["total"]) + " 个请求中，成功的有 " + str(params["success"]) + " 个，失败的有 " + str(params["fail"]) + " 个。"
         else:
             messageText = "【" + params["job_name"] + "】\nHi，在最近的 " + str(params["total"]) + " 个请求中，成功的有 " + str(params["success"]) + " 个，失败的有 " + str(params["fail"]) + " 个。"
-            messageText = messageText + "\n失败订单（最后10条内）为："
+            messageText = messageText + "\n失败订单（最后10条内）为：\n"
             for res in params["failOrderSn"]:
                 messageText = messageText + "\n" + str(res)
-            messageText = messageText + "\n失败返回结果（最后10条内）为："
+            messageText = messageText + "\n失败返回结果（最后10条内）为：\n"
             for res in params["failResults"]:
                 messageText = messageText + "\n" + str(res)
             # str(res)而不是直接取res是因为出现这个报错：
