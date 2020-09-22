@@ -29,7 +29,7 @@ class Command(BaseCommand):
                 for job in Pljob.objects.filter(next_exec_time__lte=now_time):
                     exec_num = exec_num + 1
                     # 更新job数据
-                    job.last_exec_time = timezone.now()
+                    job.last_exec_time = now_time
                     job.next_exec_time = job.last_exec_time + timedelta(seconds=job.delay_sec)
                     job.save()
                     # 执行job
