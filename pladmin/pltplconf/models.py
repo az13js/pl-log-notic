@@ -12,6 +12,7 @@ class Pljob(models.Model):
     # system_type
     # 0 默认系统，SLOG，普通接口请求
     # 1 XLOG
+    # 2 某品牌的错误日志监控
     system_type = models.IntegerField("系统类型", default=0)
 
     def __str__(self):

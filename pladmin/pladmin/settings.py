@@ -140,7 +140,8 @@ STATIC_URL = '/static/'
 # 模块
 PL_PIPLINES = [
     'pltplconf.management.commands.Piplines.OrderSystemCommon',
-    'pltplconf.management.commands.Piplines.XLogSystemQuery'
+    'pltplconf.management.commands.Piplines.XLogSystemQuery',
+    'pltplconf.management.commands.Piplines.MLSystemQuery'
 ]
 
 # es地址
@@ -153,6 +154,13 @@ XES_ADDRESS = {
     'ip': '127.0.0.2',
     'host': 'www.example2.com.cn',
     'http_auth': 'user:password'
+}
+
+MLES_ADDRESS = {
+    'ip': '127.0.0.3',
+    'host': 'www.example3.com.cn',
+    'http_auth': 'user:password',
+    'project': 'project_name'
 }
 
 MESSAGERS_CONFIG = {
