@@ -39,4 +39,4 @@ Hi，请求时间统计信息如下：
             }
         }
         logger.debug(json.dumps(data))
-        #requests.post(url = settings.MESSAGERS_CONFIG["WxTeam"], headers = {"Content-Type": "text/plain"}, json = data)
+        requests.post(url = settings.MESSAGERS_CONFIG["WxTeam"], headers = {"Content-Type": "text/plain"}, json = data)

@@ -17,6 +17,5 @@ class OrderSystemTimeCommon():
         params['job_name'] = job.job_name
         if params['total'] > 0:
             WxTeamTime().send(job, params)
-        exit(0)
 
 
