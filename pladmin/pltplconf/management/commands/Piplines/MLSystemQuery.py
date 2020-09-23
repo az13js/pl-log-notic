@@ -11,8 +11,8 @@ class MLSystemQuery():
         self.MLSystemQueryController = MLSystemQueryController()
 
     def handle(self, job):
-        logger.debug("MLSystemQuery流水线，正在运作")
         if 2 == job.system_type:
+            logger.debug("MLSystemQuery流水线，正在运作")
             self.MLSystemQueryController.errorSummary(job)
 
 
