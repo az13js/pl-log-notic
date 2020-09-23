@@ -11,8 +11,8 @@ class OrderSystemError():
         self.OrderSystemErrorController = OrderSystemErrorController()
 
     def handle(self, job):
-        logger.debug("OrderSystemError流水线，正在运作")
         if 3 == job.system_type:
+            logger.debug("OrderSystemError流水线，正在运作")
             self.OrderSystemErrorController.errorSummary(job)
 
 

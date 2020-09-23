@@ -14,6 +14,7 @@ class Pljob(models.Model):
     # 1 XLOG
     # 2 某品牌的错误日志监控
     # 3 默认系统的错误日志监控
+    # 4 默认系统推送消息时间监控
     system_type = models.IntegerField("系统类型", default=0)
 
     def __str__(self):
