@@ -166,7 +166,8 @@ MLES_ADDRESS = {
 }
 
 MESSAGERS_CONFIG = {
-    "WxTeam": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=0000000000000000000"
+    "WxTeam": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=0000000000000000000",
+    "MLBot": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=0000000000000000000"
 }
 
 # 日志处理

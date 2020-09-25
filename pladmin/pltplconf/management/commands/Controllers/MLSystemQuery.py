@@ -2,7 +2,7 @@
 
 from pltplconf.management.commands.Collectors.MLSystemAnalysis import MLSystemAnalysis
 from pltplconf.management.commands.Parsers.MLFormate import MLFormate
-from pltplconf.management.commands.Messagers.WxTeamXLog import WxTeamXLog
+from pltplconf.management.commands.Messagers.MLBot import MLBot
 import logging
 
 logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ class MLSystemQuery():
         params = MLFormate().parse(queryLog)
         params['job_name'] = job.job_name
         if params['total'] > 0:
-            WxTeamXLog().send(job, params)
+            MLBot().send(job, params)
         logger.debug("MLSystemQuery控制器执行完成")
 
 

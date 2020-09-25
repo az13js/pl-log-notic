@@ -20,9 +20,10 @@ class MLFormate():
         for log in results['responses']:
             for unit in log['hits']['hits']:
                 total = total + 1
-                for analysisInfo in self.analysis(unit['_source']['keyword']):
-                    if analysisInfo['rule'] == 0:
-                        errorMessages.append(analysisInfo['str'])
+                errorMessages.append(unit['_source']['keyword'])
+                #for analysisInfo in self.analysis(unit['_source']['keyword']):
+                #    if analysisInfo['rule'] == 0:
+                #        errorMessages.append(analysisInfo['str'])
         return {"total": total, "errorMessages": errorMessages}
 
     def analysis(self, message):
