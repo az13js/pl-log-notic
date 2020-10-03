@@ -1,17 +1,17 @@
 <template>
   <v-app id="vuetifyapp">
     <com-navigation></com-navigation>
-    <v-content>
+    <v-main>
       <transition name="bounce" mode="out-in">
         <router-view></router-view>
       </transition>
-    </v-content>
+    </v-main>
   </v-app>
 </template>
 
 <script lang="ts">
   import Vue from "vue";
-  import Navigation from "./components/Navigation.vue";
+  import Navigation from "./components/Navigation.vue"; // 导航栏
 
   // https://class-component.vuejs.org/guide/property-type-declaration.html
   export default Vue.extend({

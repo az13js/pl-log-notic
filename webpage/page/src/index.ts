@@ -5,10 +5,13 @@ import vuetify from "./plugins/vuetify.ts";
 import store from "./store/index.ts";
 import VueRouter, { RouteConfig } from "vue-router";
 
+import MonitorTask from "./components/MonitorTask/Main.vue";
+
 Vue.prototype.$axios = axios;
 Vue.use(VueRouter);
 
 const routes: RouteConfig[] = [
+  { path: "/", component: MonitorTask }
 ]
 
 new Vue({

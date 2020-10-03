@@ -60,7 +60,7 @@ module.exports = {
           {
             loader: MiniCssExtractPlugin.loader,
             options: {
-              publicPath: './static/',
+              publicPath: '/static/',
             }
           },
           'css-loader',
@@ -97,7 +97,7 @@ module.exports = {
       title: 'pl-log-notic',
       window: {
         env: {
-          apiHost: 'http://127.0.0.1'
+          apiHost: '' // http://www.yourhost.com
         }
       }
     }),
