@@ -3,8 +3,8 @@
   <v-container>
     <v-row>
       <v-col cols="12">
-        <v-bottom-navigation :value="taskSettingIndex" color="primary" background-color="rgba(0,0,0,0.04)" horizontal>
-          <v-btn v-for="item in buttonList" v-bind:to="item.path">
+        <v-bottom-navigation :value="taskSettingIndex" color="primary" background-color="rgba(255, 255, 255, 0.04)" horizontal>
+          <v-btn v-for="item in buttonList" v-bind:to="item.path" :disabled="isLoading">
             <span>{{ item.name }}</span><v-icon>{{ item.icon }}</v-icon>
           </v-btn>
         </v-bottom-navigation>
