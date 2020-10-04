@@ -1,6 +1,6 @@
 <!-- 导航栏 -->
 <template>
-  <v-navigation-drawer app class="navigation-common-style" width="182px" mobile-breakpoint="400">
+  <v-navigation-drawer app class="navigation-common-style" width="170px" mobile-breakpoint="400">
     <v-list dense nav class="py-0">
       <v-list-item>
         <v-list-item-content>
@@ -32,7 +32,8 @@
     data(): Object {
       let list = {
         items: [
-          {title: "监控任务", path:"/"}
+          {title: "监控任务", path:"/"},
+          {title: "任务设置", path:"/TaskSetting"}
         ]
       };
       return list;

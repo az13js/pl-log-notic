@@ -64,7 +64,7 @@
      */
     locationTaskSetting(item: any): void {
       this.$router.push({
-        name: "taskSetting",
+        name: "TaskSetting",
         params: {
           id: item.id
         }
