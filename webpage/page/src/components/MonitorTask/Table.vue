@@ -5,7 +5,7 @@
       <v-col cols="12">
         <v-data-table item-key="id" :loading="isLoading" loading-text="正在加载数据……" mobile-breakpoint="400" :headers="headers" :items="desserts" calculate-widths disable-pagination disable-sort hide-default-footer>
           <template v-slot:item.actions="{ item }">
-            <v-icon @click="locationTaskSetting(item)">mdi-open-in-new</v-icon>
+            <v-icon @click="locationTaskSetting(item)">mdi-pencil</v-icon>
           </template>
         </v-data-table>
       </v-col>

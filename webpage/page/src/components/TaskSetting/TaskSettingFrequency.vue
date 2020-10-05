@@ -9,7 +9,7 @@
         <v-text-field label="查询到多少条结果就触发推送" counter="10" placeholder="最小值是0，不能小于0" clearable></v-text-field>
       </v-col>
       <v-col cols="4">
-        <v-text-field label="每分钟最多推送多少条" counter="10" placeholder="可以是小数但必须大于0" clearable></v-text-field>
+        <v-text-field label="每小时最多推送多少条" counter="10" placeholder="可以是小数但必须大于0" clearable></v-text-field>
       </v-col>
     </v-row>
     <v-row>
