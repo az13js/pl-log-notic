@@ -9,7 +9,7 @@
     </v-row>
     <v-row>
       <v-col cols="1">
-        <v-btn color="green" @click="addEmptyPlaceholder" fab><v-icon>mdi-plus</v-icon></v-btn>
+        <v-btn color="green" @click="addEmptyPlaceholder()" fab><v-icon>mdi-plus</v-icon></v-btn>
       </v-col>
       <v-col cols="11">
         <p>添加占位符</p>
@@ -25,12 +25,12 @@
             <v-list-item-content>
               <v-card>
                 <v-card-text>
-                  <p><v-textarea label="测试输入" clearable></v-textarea></p>
-                  <p><v-textarea label="消息文本模板" counter="1024" clearable></v-textarea></p>
+                  <p><v-textarea label="测试输入" v-model="testInputText" clearable></v-textarea></p>
+                  <p><v-textarea label="消息文本模板" counter="1024" v-model="testTemplateText" clearable></v-textarea></p>
                 </v-card-text>
-                <v-card-actions><v-btn color="orange">运行测试</v-btn></v-card-actions>
+                <v-card-actions><v-btn color="orange" @click="testPlaceholders()">运行测试</v-btn></v-card-actions>
                 <v-card-text>
-                  <p><v-textarea label="测试结果" counter="1024" clearable></v-textarea></p>
+                  <p><v-textarea label="测试结果" counter="1024" v-model="testOutputText" clearable></v-textarea></p>
                 </v-card-text>
               </v-card>
             </v-list-item-content>
@@ -49,6 +49,8 @@
 <script lang="ts">
   import Vue from "vue";
   import Component from "vue-class-component";
+  import Placeholder from "./TaskSettingPlaceholder/Placeholder.ts";
+  import TemplateParser from "./TaskSettingPlaceholder/TemplateParser.ts";
 
   @Component
   export default class TaskSettingPlaceholder extends Vue {
@@ -57,22 +59,18 @@
       new Placeholder("d", "e", "f"),
       new Placeholder("g", "h", "i")
     ]
+    public testInputText: string = ""
+    public testTemplateText: string = ""
+    public testOutputText: string = ""
     public addEmptyPlaceholder(): void {
       this.placeholders.push(new Placeholder("", "", ""))
     }
     public deletePlaceholder(index: number): void {
       this.placeholders.splice(index, 1);
     }
-  }
-
-  class Placeholder {
-    public placeholder: string = "";
-    public start: string = "";
-    public end: string = "";
-    constructor(placeholder: string, start: string, end: string) {
-      this.placeholder = placeholder;
-      this.start = start;
-      this.end = end;
+    public testPlaceholders(): void {
+      let parser: TemplateParser = new TemplateParser(this.placeholders, this.testInputText);
+      this.testOutputText = parser.parse(this.testTemplateText);
     }
   }
 </script>
