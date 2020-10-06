@@ -6,7 +6,6 @@ Vue.use(Vuex);
 const opts = {
   //strict: true
   state: {
-    fileList: [],
     desserts: [],
     isLoading: true,
     queryColumns: {
@@ -14,8 +13,7 @@ const opts = {
       endTime: "",
       page: 1
     },
-    inprocess: 0,
-    isUploading: false
+    taskSettingIndex: 0
   },
   mutations: {
     updateDesserts(state: any, playload: any): void {
@@ -30,12 +28,8 @@ const opts = {
     setQueryColumns(state: any, playload: any): void {
       state.queryColumns = playload.queryColumns;
     },
-    setUploadStatus(state: any, playload: any): void {
-      state.inprocess = playload.inprocess;
-      state.isUploading = playload.isUploading;
-    },
-    setFileList(state: any, playload: any): void {
-      state.fileList = playload.fileList;
+    setTaskSettingIndex(state: any, idx: number): void {
+      state.taskSettingIndex = idx;
     }
   }
 };
