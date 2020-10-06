@@ -7,6 +7,12 @@
           <template v-slot:item.actions="{ item }">
             <v-icon @click="locationTaskSetting(item)">mdi-pencil</v-icon>
           </template>
+          <template v-slot:item.enable="{ item }">
+            <v-icon>mdi-pencil</v-icon>
+          </template>
+          <template v-slot:item.delete="{ item }">
+            <v-icon>mdi-delete</v-icon>
+          </template>
         </v-data-table>
       </v-col>
     </v-row>
@@ -23,7 +29,9 @@
   export default class Table extends Vue {
     headers: object[] = [
       {text: '配置', value: 'actions'},
-      {text: "任务名称", value: "name"}
+      {text: '开/关', value: 'enable'},
+      {text: "任务名称", value: "name"},
+      {text: '删除', value: 'delete'}
     ]
     get isLoading() {
       return this.$store.state.isLoading;
