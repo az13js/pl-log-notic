@@ -56,10 +56,10 @@
     mounted(): void {
       let host: string = window.env.apiHost;
       this.$store.commit("loadStatus", {isLoading: true});
-      axios.get(host + "/monitor-task", {
+      axios.get(host + "/pl/task-list", {
         params: this.$store.state.queryColumns
       }).then((response: AxiosResponse): void => {
-        this.$store.commit("updateDesserts", {desserts: response.data.list});
+        this.$store.commit("updateDesserts", {desserts: response.data.data.list});
         this.$store.commit("loadStatus", {isLoading: false});
       });
     }

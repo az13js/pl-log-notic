@@ -3,7 +3,7 @@
 from django.db import models
 
 class Pljob(models.Model):
-    task_setting = models.ForeignKey("PlTaskSetting", on_delete=models.CASCADE, default=0)
+    task_setting = models.OneToOneField("PlTaskSetting", on_delete=models.CASCADE)
     last_exec_time = models.DateTimeField("最后一次执行时间")
     next_exec_time = models.DateTimeField("下一次执行时间")
     delay_sec = models.IntegerField("延迟的时间（秒）")
@@ -29,7 +29,7 @@ class Pljob(models.Model):
 新的任务使用这里的配置，旧的为了继续运行，暂时不删除。
 """
 class PlTaskSetting(models.Model):
-    task_name = models.CharField("任务名称", max_length=64, default="")
+    task_name = models.CharField("任务名称", max_length=64, default="", unique=True)
     status = models.SmallIntegerField("状态(1:开,0:关)", default=0)
     es_host = models.CharField("ES 主机名", max_length=100, default="")
     es_ip = models.CharField("ES ip 地址", max_length=64, default="")
