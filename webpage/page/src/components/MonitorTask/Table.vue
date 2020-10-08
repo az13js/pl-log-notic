@@ -11,9 +11,38 @@
             <v-icon>mdi-pencil</v-icon>
           </template>
           <template v-slot:item.delete="{ item }">
-            <v-icon>mdi-delete</v-icon>
+            <v-icon @click="showDeleteTaskDialog(item)">mdi-delete</v-icon>
           </template>
         </v-data-table>
+        <!-- 对话框，删除任务时用于确认 -->
+        <v-dialog v-model="deleteTaskDialog" max-width="600px" persistent>
+          <v-card>
+            <v-card-title><span class="headline">删除任务</span></v-card-title>
+            <v-card-text>
+              <p>确定要删除任务“{{ deleteTaskName }}”吗？</p>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="teal" :disabled="isLoading" @click="deleteTaskNo()" text>取消</v-btn>
+              <v-btn color="teal" :disabled="isLoading" @click="deleteTaskYes()" text>确定</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <!-- 对话框结束 -->
+        <!-- 对话框，删除任务失败时弹出 -->
+        <v-dialog v-model="deleteFailDialog" max-width="600px">
+          <v-card>
+            <v-card-title><span class="headline">删除失败</span></v-card-title>
+            <v-card-text>
+              <p>{{ errorMessage }}</p>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="teal" :disabled="isLoading" @click="closeFailDialog()" text>关闭</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <!-- 对话框结束 -->
       </v-col>
     </v-row>
   </v-container>
@@ -27,12 +56,6 @@
 
   @Component
   export default class Table extends Vue {
-    headers: object[] = [
-      {text: '配置', value: 'actions'},
-      {text: '开/关', value: 'enable'},
-      {text: "任务名称", value: "name"},
-      {text: '删除', value: 'delete'}
-    ]
     get isLoading() {
       return this.$store.state.isLoading;
     }
@@ -48,12 +71,35 @@
       this.$store.commit("updateDesserts", {desserts: value});
     }
 
+    /** @type {object[]} 按钮 */
+    public headers: object[] = [
+      {text: '配置', value: 'actions'},
+      {text: '开/关', value: 'enable'},
+      {text: "任务名称", value: "name"},
+      {text: '删除', value: 'delete'}
+    ]
+
+    /** @type {boolean} 删除任务失败对话框 */
+    public deleteFailDialog: boolean = false
+
+    /** @type {string} 错误消息 */
+    public errorMessage: string = ""
+
+    /** @type {boolean} 显示删除任务确认对话框 */
+    public deleteTaskDialog: boolean = false
+
+    /** @type {string} 删除的任务名称 */
+    public deleteTaskName: string = ""
+
+    /** @type {number} 删除的任务ID */
+    private deleteTaskId: number = 0
+
     /**
      * 加载后执行，load首页数据
      *
-     * @return void
+     * @return {void}
      */
-    mounted(): void {
+    public mounted(): void {
       let host: string = window.env.apiHost;
       this.$store.commit("loadStatus", {isLoading: true});
       axios.get(host + "/pl/task-list", {
@@ -67,14 +113,77 @@
     /**
      * 点击按钮到配置监控任务的页面
      *
-     * @param item any
-     * @return void
+     * @param {any} item
+     * @return {void}
      */
-    locationTaskSetting(item: any): void {
+    public locationTaskSetting(item: any): void {
       this.$router.push({
         name: "TaskSetting",
         params: {
           id: item.id
+        }
+      });
+    }
+
+    /**
+     * 关闭失败对话框
+     *
+     * @returns {void}
+     */
+    public closeFailDialog(): void {
+      this.deleteFailDialog = false;
+      this.errorMessage = "";
+    }
+
+    /**
+     * 显示删除任务对话框
+     *
+     * @param {any} item
+     * @return {void}
+     */
+    public showDeleteTaskDialog(item: any): void {
+      this.deleteTaskName = item.name;
+      this.deleteTaskId = item.id;
+      this.deleteTaskDialog = true;
+    }
+
+    /**
+     * 关闭删除任务对话框
+     *
+     * @returns {void}
+     */
+    public deleteTaskNo(): void {
+      this.deleteTaskDialog = false;
+      this.deleteTaskName = "";
+      this.deleteTaskId = 0;
+    }
+
+    /**
+     * 确定删除任务
+     *
+     * @returns {void}
+     */
+    public deleteTaskYes(): void {
+      this.$store.commit("loadStatus", {isLoading: true});
+      let host: string = window.env.apiHost;
+      axios.post(host + "/pl/task-delete", {
+        params: {id: this.deleteTaskId}
+      }).then((response: AxiosResponse): void => {
+        this.deleteTaskDialog = false;
+        this.deleteTaskName = "";
+        this.deleteTaskId = 0;
+        this.$store.commit("loadStatus", {isLoading: false});
+        if (0 == response.data.code) {
+          this.$store.commit("loadStatus", {isLoading: true});
+          axios.get(window.env.apiHost + "/pl/task-list", {
+            params: this.$store.state.queryColumns
+          }).then((response: AxiosResponse): void => {
+            this.$store.commit("updateDesserts", {desserts: response.data.data.list});
+            this.$store.commit("loadStatus", {isLoading: false});
+          });
+        } else {
+          this.errorMessage = response.data.message;
+          this.deleteFailDialog = true;
         }
       });
     }
