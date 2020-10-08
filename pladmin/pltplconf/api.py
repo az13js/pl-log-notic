@@ -23,7 +23,7 @@ def task_list(request):
         list = []
     results = []
     for task in list:
-        results.append({"id": task.id, "name": task.task_name})
+        results.append({"id": task.id, "name": task.task_name, "status": task.status})
     return response(data={
         "list": results
     })

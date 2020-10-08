@@ -8,7 +8,8 @@
             <v-icon @click="locationTaskSetting(item)">mdi-pencil</v-icon>
           </template>
           <template v-slot:item.enable="{ item }">
-            <v-icon>mdi-pencil</v-icon>
+            <v-btn v-if="item.status == 1" color="blue" :disabled="isLoading" @click="statusChange(item)" text>已开启</v-btn>
+            <v-btn v-if="item.status == 0" color="red" :disabled="isLoading" @click="statusChange(item)" text>已关闭</v-btn>
           </template>
           <template v-slot:item.delete="{ item }">
             <v-icon @click="showDeleteTaskDialog(item)">mdi-delete</v-icon>
@@ -186,6 +187,19 @@
           this.deleteFailDialog = true;
         }
       });
+    }
+
+    /**
+     * 确定删除任务
+     *
+     * @returns {void}
+     */
+    public statusChange(task: any): void {
+      if (1 == task.status) {
+        task.status = 0;
+      } else if (0 == task.status) {
+        task.status = 1;
+      }
     }
   }
 </script>
