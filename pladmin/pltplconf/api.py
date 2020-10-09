@@ -7,6 +7,8 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core import serializers
+from django.forms.models import model_to_dict
 from pltplconf.models import Pljob, PlTaskSetting
 
 @require_http_methods(["GET"])
@@ -93,6 +95,19 @@ def task_set_status(request):
         result = response(-1, message="任务不存在，可能已经被删除。")
     except DatabaseError:
         result = response(-2, message="状态修改失败。")
+    return result
+
+@require_http_methods(["GET"])
+@csrf_exempt
+def task_info(request):
+    """任务信息"""
+    try:
+        task = model_to_dict(PlTaskSetting.objects.get(id=request.GET["id"]))
+        result = response(0, data={"task": task})
+    except ObjectDoesNotExist:
+        result = response(-1, message="任务不存在，可能已经被删除。")
+    except DatabaseError:
+        result = response(-2, message="查询数据异常。")
     return result
 
 def response(code=0, data={}, message=""):

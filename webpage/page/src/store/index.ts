@@ -9,11 +9,15 @@ const opts = {
     desserts: [],
     isLoading: true,
     queryColumns: {
-      startTime: "",
-      endTime: "",
       page: 1
     },
-    taskSettingIndex: 0
+    taskSettingIndex: 0,
+    taskSettingInfo: {},
+    dialog: {
+      title: "",
+      message: "",
+      isShow: false
+    }
   },
   mutations: {
     updateDesserts(state: any, playload: any): void {
@@ -28,8 +32,21 @@ const opts = {
     setQueryColumns(state: any, playload: any): void {
       state.queryColumns = playload.queryColumns;
     },
+    setTaskSettingInfo(state: any, playload: any): void {
+      state.taskSettingInfo = playload.taskSettingInfo;
+    },
     setTaskSettingIndex(state: any, idx: number): void {
       state.taskSettingIndex = idx;
+    },
+    showDialog(state: any, playload: any): void {
+      state.dialog.title = playload.title;
+      state.dialog.message = playload.message;
+      state.dialog.isShow = true;
+    },
+    closeDialog(state: any, playload: any): void {
+      state.dialog.title = "";
+      state.dialog.message = "";
+      state.dialog.isShow = false;
     }
   }
 };

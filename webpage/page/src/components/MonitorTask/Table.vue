@@ -30,20 +30,6 @@
           </v-card>
         </v-dialog>
         <!-- 对话框结束 -->
-        <!-- 对话框，失败时弹出 -->
-        <v-dialog v-model="failDialog" max-width="600px">
-          <v-card>
-            <v-card-title><span class="headline">{{ dialogTitle }}</span></v-card-title>
-            <v-card-text>
-              <p>{{ errorMessage }}</p>
-            </v-card-text>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="teal" :disabled="isLoading" @click="closeFailDialog()" text>关闭</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-        <!-- 对话框结束 -->
       </v-col>
     </v-row>
   </v-container>
@@ -79,15 +65,6 @@
       {text: "任务名称", value: "name"},
       {text: '删除', value: 'delete'}
     ]
-
-    /** @type {boolean} 删除任务失败对话框 */
-    public failDialog: boolean = false
-
-    /** @type {string} 错误消息 */
-    public errorMessage: string = ""
-
-    /** @type {string} 标题 */
-    public dialogTitle: string = ""
 
     /** @type {boolean} 显示删除任务确认对话框 */
     public deleteTaskDialog: boolean = false
@@ -135,9 +112,7 @@
      * @returns {void}
      */
     public closeFailDialog(): void {
-      this.failDialog = false;
-      this.errorMessage = "";
-      this.dialogTitle = "";
+      this.$store.commit("closeDialog", {});
     }
 
     /**
@@ -187,9 +162,7 @@
             this.$store.commit("loadStatus", {isLoading: false});
           });
         } else {
-          this.errorMessage = response.data.message;
-          this.failDialog = true;
-          this.dialogTitle = "删除任务失败";
+          this.$store.commit("showDialog", {message: response.data.message, title: "删除任务失败"});
         }
       });
     }
@@ -208,9 +181,7 @@
         if (0 == response.data.code) {
           task.status = 1 - task.status;
         } else {
-          this.errorMessage = response.data.message;
-          this.failDialog = true;
-          this.dialogTitle = "修改状态失败";
+          this.$store.commit("showDialog", {message: response.data.message, title: "修改状态失败"});
         }
       });
     }

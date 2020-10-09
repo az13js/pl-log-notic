@@ -62,11 +62,16 @@
       }
       let host: string = window.env.apiHost;
       this.$store.commit("loadStatus", {isLoading: true});
-      axios.get(host + "/monitor-task", {
+      axios.get(host + "/pl/task-info", {
         params: {id: this.$route.params.id}
       }).then((response: AxiosResponse): void => {
         this.$store.commit("loadStatus", {isLoading: false});
-        this.$router.push(this.buttonList[this.taskSettingIndex].path);
+        if (0 == response.data.code) {
+          this.$store.commit("taskSettingInfo", {taskSettingInfo: response.data.data.task});
+          this.$router.push(this.buttonList[this.taskSettingIndex].path);
+        } else {
+          this.$store.commit("showDialog", {message: response.data.message, title: "获取配置信息失败"});
+        }
       });
     }
   }
