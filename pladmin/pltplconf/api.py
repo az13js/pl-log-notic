@@ -1,5 +1,6 @@
 import json
 import re
+import requests
 from django.http import JsonResponse
 from django.utils import timezone
 from django.db import transaction, DatabaseError
@@ -185,6 +186,30 @@ def task_test_es_link(request):
                 "use_ssl": ssl,
                 "http_auth": auth
             }
+        })
+    except ObjectDoesNotExist:
+        result = response(-1, message="任务不存在，可能已经被删除。")
+    except DatabaseError:
+        result = response(-2, message="状态修改失败。")
+    return result
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def task_test_wxbot_address(request):
+    """测试企业微信地址"""
+    datas = json.loads(request.body.decode())
+    try:
+        address = datas["params"]["wx_bot_addr"]
+        if datas["params"]["wx_bot_addr"] is None:
+            address = ""
+        data = {
+            "msgtype": "text",
+            "text": {
+                "content": "【企业微信机器人测试消息】大家好。"
+            }
+        }
+        result = response(0, data={
+            "wxTestResult": requests.post(url = address, headers = {"Content-Type": "text/plain"}, json = data).content.decode()
         })
     except ObjectDoesNotExist:
         result = response(-1, message="任务不存在，可能已经被删除。")

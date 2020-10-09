@@ -13,5 +13,6 @@ urlpatterns = [
     path('pl/task-set-status', api.task_set_status, name='task-set-status'), # 修改任务开关状态
     path('pl/task-info', api.task_info, name='task-info'), # 获取任务信息
     path('pl/task-save-info', api.task_save_info, name='task-save-info'), # 保存任务信息
-    path('pl/task-test-es-link', api.task_test_es_link, name='task-test-es-link') # 测试ES服务器连接
+    path('pl/task-test-es-link', api.task_test_es_link, name='task-test-es-link'), # 测试ES服务器连接
+    path('pl/task-test-wxbot-address', api.task_test_wxbot_address, name='task-test-wxbot-address') # 测试微信机器人地址
 ]
