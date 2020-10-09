@@ -79,6 +79,22 @@ def task_delete(request):
         result = response(-1, message="任务不存在，可能已在其它网页端被删除。")
     return result
 
+@require_http_methods(["POST"])
+@csrf_exempt
+def task_set_status(request):
+    """设置任务的开启、关闭状态"""
+    datas = json.loads(request.body.decode())
+    try:
+        task = PlTaskSetting.objects.get(id=datas["params"]["id"])
+        task.status = datas["params"]["status"]
+        task.save()
+        result = response()
+    except ObjectDoesNotExist:
+        result = response(-1, message="任务不存在，可能已经被删除。")
+    except DatabaseError:
+        result = response(-2, message="状态修改失败。")
+    return result
+
 def response(code=0, data={}, message=""):
     """统一返回格式"""
     codes = { # 公共的返回消息，code >= 0，如果业务需要返回定制消息的，code取负数

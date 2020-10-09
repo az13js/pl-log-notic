@@ -30,10 +30,10 @@
           </v-card>
         </v-dialog>
         <!-- 对话框结束 -->
-        <!-- 对话框，删除任务失败时弹出 -->
-        <v-dialog v-model="deleteFailDialog" max-width="600px">
+        <!-- 对话框，失败时弹出 -->
+        <v-dialog v-model="failDialog" max-width="600px">
           <v-card>
-            <v-card-title><span class="headline">删除失败</span></v-card-title>
+            <v-card-title><span class="headline">{{ dialogTitle }}</span></v-card-title>
             <v-card-text>
               <p>{{ errorMessage }}</p>
             </v-card-text>
@@ -81,10 +81,13 @@
     ]
 
     /** @type {boolean} 删除任务失败对话框 */
-    public deleteFailDialog: boolean = false
+    public failDialog: boolean = false
 
     /** @type {string} 错误消息 */
     public errorMessage: string = ""
+
+    /** @type {string} 标题 */
+    public dialogTitle: string = ""
 
     /** @type {boolean} 显示删除任务确认对话框 */
     public deleteTaskDialog: boolean = false
@@ -132,8 +135,9 @@
      * @returns {void}
      */
     public closeFailDialog(): void {
-      this.deleteFailDialog = false;
+      this.failDialog = false;
       this.errorMessage = "";
+      this.dialogTitle = "";
     }
 
     /**
@@ -184,7 +188,8 @@
           });
         } else {
           this.errorMessage = response.data.message;
-          this.deleteFailDialog = true;
+          this.failDialog = true;
+          this.dialogTitle = "删除任务失败";
         }
       });
     }
@@ -195,11 +200,19 @@
      * @returns {void}
      */
     public statusChange(task: any): void {
-      if (1 == task.status) {
-        task.status = 0;
-      } else if (0 == task.status) {
-        task.status = 1;
-      }
+      this.isLoading = true;
+      axios.post(window.env.apiHost + "/pl/task-set-status", {
+        params: {id: task.id, status: 1 - task.status}
+      }).then((response: AxiosResponse): void => {
+        this.$store.commit("loadStatus", {isLoading: false});
+        if (0 == response.data.code) {
+          task.status = 1 - task.status;
+        } else {
+          this.errorMessage = response.data.message;
+          this.failDialog = true;
+          this.dialogTitle = "修改状态失败";
+        }
+      });
     }
   }
 </script>
