@@ -17,7 +17,8 @@ const opts = {
       title: "",
       message: "",
       isShow: false
-    }
+    },
+    esTestResult: ""
   },
   mutations: {
     updateDesserts(state: any, playload: any): void {
@@ -34,6 +35,9 @@ const opts = {
     },
     setTaskSettingInfo(state: any, playload: any): void {
       state.taskSettingInfo = playload.taskSettingInfo;
+    },
+    setEsTestResult(state: any, playload: any): void {
+      state.esTestResult = playload.esTestResult;
     },
     setTaskSettingIndex(state: any, idx: number): void {
       state.taskSettingIndex = idx;

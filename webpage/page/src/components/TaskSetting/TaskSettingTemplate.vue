@@ -13,7 +13,7 @@
     </v-row>
     <v-row>
       <v-col cols="12">
-        <v-btn color="primary" block>保存此监控任务所有的改动</v-btn>
+        <v-btn color="primary" @click="save()" block>保存此监控任务所有的改动</v-btn>
       </v-col>
     </v-row>
   </v-container>
@@ -22,8 +22,9 @@
 <script lang="ts">
   import Vue from "vue";
   import Component from "vue-class-component";
+  import TaskSettingBase from "./TaskSettingBase.ts";
 
   @Component
-  export default class TaskSettingTemplate extends Vue {
+  export default class TaskSettingTemplate extends TaskSettingBase {
   }
 </script>

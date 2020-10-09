@@ -40,7 +40,7 @@
     </v-row>
     <v-row>
       <v-col cols="12">
-        <v-btn color="primary" block>保存此监控任务所有的改动</v-btn>
+        <v-btn color="primary" @click="save()" block>保存此监控任务所有的改动</v-btn>
       </v-col>
     </v-row>
   </v-container>
@@ -51,9 +51,10 @@
   import Component from "vue-class-component";
   import Placeholder from "./TaskSettingPlaceholder/Placeholder.ts";
   import TemplateParser from "./TaskSettingPlaceholder/TemplateParser.ts";
+  import TaskSettingBase from "./TaskSettingBase.ts";
 
   @Component
-  export default class TaskSettingPlaceholder extends Vue {
+  export default class TaskSettingPlaceholder extends TaskSettingBase {
     public placeholders: Placeholder[] = [
       new Placeholder("a", "b", "c"),
       new Placeholder("d", "e", "f"),
