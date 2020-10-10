@@ -50,12 +50,6 @@
 
   @Component
   export default class TaskSettingESAddress extends TaskSettingBase {
-    get isLoading() {
-      return this.$store.state.isLoading;
-    }
-    set isLoading(value: boolean) {
-      this.$store.commit("loadStatus", {isLoading: value});
-    }
     set esHost(v: string) {
       let src: any = JSON.parse(JSON.stringify(this.$store.state.taskSettingInfo));
       src.es_host = v;

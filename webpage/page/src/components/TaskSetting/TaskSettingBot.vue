@@ -8,7 +8,7 @@
     </v-row>
     <v-row>
       <v-col cols="12">
-        <v-btn color="secondary" @click="testLinkWX()" block>推送测试</v-btn>
+        <v-btn :disabled="isLoading" color="secondary" @click="testLinkWX()" block>推送测试</v-btn>
       </v-col>
     </v-row>
     <v-row>
@@ -18,7 +18,7 @@
     </v-row>
     <v-row>
       <v-col cols="12">
-        <v-btn color="primary" @click="save()" block>保存此监控任务所有的改动</v-btn>
+        <v-btn :disabled="isLoading" color="primary" @click="save()" block>保存此监控任务所有的改动</v-btn>
       </v-col>
     </v-row>
   </v-container>
@@ -40,12 +40,6 @@
     }
     get botAddress(): string {
       return this.$store.state.taskSettingInfo.wx_bot_addr;
-    }
-    get isLoading() {
-      return this.$store.state.isLoading;
-    }
-    set isLoading(value: boolean) {
-      this.$store.commit("loadStatus", {isLoading: value});
     }
 
     /** @type {string} */
