@@ -50,3 +50,13 @@ class PlTaskSetting(models.Model):
         if hasattr(self, "id"):
             return "id=" + str(self.id) + ",任务名称" + self.task_name
         return "任务名称" + self.task_name
+
+"""
+    job推送记录
+"""
+class PlPushLog(models.Model):
+    job_pri_key = models.IntegerField("Job主键ID", default=0, db_index=True)
+    push_time = models.DateTimeField("推送时间", db_index=True)
+
+    def __str__(self):
+        return "JOBID=" + str(self.job_pri_key) + ",TIME=" + str(self.push_time)

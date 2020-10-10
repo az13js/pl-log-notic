@@ -16,4 +16,4 @@ class Task():
         params = json.loads(queryLog)
         if "responses" in params and "hits" in params["responses"][0] and "total" in params["responses"][0]["hits"] and params["responses"][0]["hits"]["total"] >= job.task_setting.push_min:
             message = TaskParser().parse(job.task_setting, queryLog)
-            WXBot().send(job.task_setting, message)
+            WXBot().send(job, message)
