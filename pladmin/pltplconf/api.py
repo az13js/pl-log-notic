@@ -1,5 +1,6 @@
 import json
 import re
+import time
 import requests
 from django.http import JsonResponse
 from django.utils import timezone
@@ -17,7 +18,11 @@ from pltplconf.models import Pljob, PlTaskSetting
 @require_http_methods(["GET"])
 def task_list(request):
     """返回任务列表"""
-    tasks = PlTaskSetting.objects.order_by('-id').all()
+    taskName = request.GET.get('taskName')
+    if "" != taskName and taskName is not None:
+        tasks = PlTaskSetting.objects.filter(task_name__icontains=taskName).order_by('-id').all()
+    else:
+        tasks = PlTaskSetting.objects.order_by('-id').all()
     paginator = Paginator(tasks, 5)
     page = request.GET.get('page')
     try:
@@ -134,7 +139,10 @@ def task_save_info(request):
         task.delay_sec = datas["params"]["delay_sec"]
         task.push_min = datas["params"]["push_min"]
         task.max_per_hour = datas["params"]["max_per_hour"]
+        job = Pljob.objects.get(task_setting=task)
+        job.delay_sec = task.delay_sec
         task.save()
+        job.save()
         result = response()
     except ObjectDoesNotExist:
         result = response(-1, message="任务不存在，可能已经被删除。")
@@ -169,14 +177,7 @@ def task_test_wxbot_address(request):
 def task_test_es_query(request):
     """保存任务配置"""
     datas = json.loads(request.body.decode())
-    queryString = datas["params"]["query_string"]
-    queryType = datas["params"]["query_type"]
-    es = getEsObject(request)
-    query_data='''{"index":[${queryType}],"ignore_unavailable":true}
-{"size":20,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}],"query":{"filtered":{"query":{"query_string":{"query":${queryString},"analyze_wildcard":true}},"filter":{"bool":{"must":[]}}}},"fielddata_fields":["@timestamp"]}
-'''
-    tpl = Template(query_data)
-    searchResult = json.dumps(es.msearch(tpl.substitute(queryType = json.dumps(queryType), queryString = json.dumps(queryString))))
+    searchResult = doQuery(getEsObject(request), datas["params"]["query_type"], datas["params"]["query_string"], round((time.time() - 24 * 60 * 60) * 1000))
     return response(0, data={"esQueryResult": searchResult})
 
 @require_http_methods(["POST"])
@@ -227,6 +228,15 @@ def getEsObject(request):
         verify_certs=False,
         http_auth=auth
     )
+
+def doQuery(esObject, queryType, queryString, gte):
+    """执行 ES 查询"""
+    query_data='''{"index":[${queryType}],"ignore_unavailable":true}
+{"size":100,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}],"query":{"filtered":{"query":{"query_string":{"query":${queryString},"analyze_wildcard":true}},"filter":{"bool":{"must":[{"range":{"@timestamp":{"gte":${gte},"format":"epoch_millis"}}}],"must_not":[]}}}},"fielddata_fields":["@timestamp"]}
+'''
+#{"size":100,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}],"query":{"filtered":{"query":{"query_string":{"query":${queryString},"analyze_wildcard":true}},"filter":{"bool":{"must":[]}}}},"fielddata_fields":["@timestamp"]}
+    tpl = Template(query_data)
+    return json.dumps(esObject.msearch(tpl.substitute(queryType = json.dumps(queryType), queryString = json.dumps(queryString), gte = gte)))
 
 def response(code=0, data={}, message=""):
     """统一返回格式"""
