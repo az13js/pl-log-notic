@@ -153,24 +153,16 @@ def task_test_es_link(request):
 def task_test_wxbot_address(request):
     """测试企业微信地址"""
     datas = json.loads(request.body.decode())
-    try:
-        address = datas["params"]["wx_bot_addr"]
-        if datas["params"]["wx_bot_addr"] is None:
-            address = ""
-        data = {
-            "msgtype": "text",
-            "text": {
-                "content": "【企业微信机器人测试消息】大家好。"
-            }
+    address = datas["params"]["wx_bot_addr"]
+    data = {
+        "msgtype": "text",
+        "text": {
+            "content": "【企业微信机器人测试消息】大家好。"
         }
-        result = response(0, data={
-            "wxTestResult": requests.post(url = address, headers = {"Content-Type": "text/plain"}, json = data).content.decode()
-        })
-    except ObjectDoesNotExist:
-        result = response(-1, message="任务不存在，可能已经被删除。")
-    except DatabaseError:
-        result = response(-2, message="状态修改失败。")
-    return result
+    }
+    return response(0, data={
+        "wxTestResult": requests.post(url = address, headers = {"Content-Type": "text/plain"}, json = data).content.decode()
+    })
 
 @require_http_methods(["POST"])
 @csrf_exempt
@@ -186,6 +178,22 @@ def task_test_es_query(request):
     tpl = Template(query_data)
     searchResult = json.dumps(es.msearch(tpl.substitute(queryType = json.dumps(queryType), queryString = json.dumps(queryString))))
     return response(0, data={"esQueryResult": searchResult})
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def task_test_send_template(request):
+    """测试发送模板"""
+    datas = json.loads(request.body.decode())
+    address = datas["params"]["wx_bot_addr"]
+    data = {
+        "msgtype": "text",
+        "text": {
+            "content": datas["params"]["template"]
+        }
+    }
+    return response(0, data={
+        "sendResult": requests.post(url = address, headers = {"Content-Type": "text/plain"}, json = data).content.decode()
+    })
 
 def getEsObject(request):
     """根据配置信息，返回一个ES对象"""
