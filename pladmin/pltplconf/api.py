@@ -11,6 +11,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core import serializers
 from django.forms.models import model_to_dict
 from elasticsearch import Elasticsearch
+from string import Template
 from pltplconf.models import Pljob, PlTaskSetting
 
 @require_http_methods(["GET"])
@@ -144,54 +145,8 @@ def task_save_info(request):
 @require_http_methods(["POST"])
 @csrf_exempt
 def task_test_es_link(request):
-    """保存任务配置"""
-    datas = json.loads(request.body.decode())
-    try:
-        port = 80
-        ssl = False
-        if "https" == datas["params"]["es_sechma"]:
-            port = 443
-            ssl = True
-        ip = datas["params"]["es_ip"]
-        if "" == datas["params"]["es_ip"] or datas["params"]["es_ip"] is None:
-            ip = datas["params"]["es_host"]
-        compress = False
-        if 1 == datas["params"]["compress"]:
-            compress = True
-        auth = ""
-        authUser = datas["params"]["auth_user"]
-        if datas["params"]["auth_user"] is None:
-            authUser = ""
-        authPwd = datas["params"]["auth_pwd"]
-        if datas["params"]["auth_pwd"] is None:
-            authPwd = ""
-        if "" != authPwd or "" != authPwd:
-            auth = authUser + ":" + authPwd
-        es = Elasticsearch(
-            [{"host": ip, "port": port, "url_prefix": "elasticsearch"}],
-            headers={"Host":datas["params"]["es_host"],"User-Agent":"Mozilla/5.0 Gecko/20100101 Firefox/68.0","Referer":"https://"+datas["params"]["es_host"]+"/app/kibana"},
-            timeout=30,
-            http_compress=compress,
-            use_ssl=ssl,
-            verify_certs=False,
-            http_auth=auth
-        )
-        result = response(0, data={
-            "esTestResult": es.info(),
-            "debug": {
-                "host": ip,
-                "port": port,
-                "headers": {"Host":datas["params"]["es_host"],"User-Agent":"Mozilla/5.0 Gecko/20100101 Firefox/68.0","Referer":"https://"+datas["params"]["es_host"]+"/app/kibana"},
-                "http_compress": compress,
-                "use_ssl": ssl,
-                "http_auth": auth
-            }
-        })
-    except ObjectDoesNotExist:
-        result = response(-1, message="任务不存在，可能已经被删除。")
-    except DatabaseError:
-        result = response(-2, message="状态修改失败。")
-    return result
+    """测试ES连接配置"""
+    return response(0, data={"esTestResult": getEsObject(request).info()})
 
 @require_http_methods(["POST"])
 @csrf_exempt
@@ -216,6 +171,54 @@ def task_test_wxbot_address(request):
     except DatabaseError:
         result = response(-2, message="状态修改失败。")
     return result
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def task_test_es_query(request):
+    """保存任务配置"""
+    datas = json.loads(request.body.decode())
+    queryString = datas["params"]["query_string"]
+    queryType = datas["params"]["query_type"]
+    es = getEsObject(request)
+    query_data='''{"index":[${queryType}],"ignore_unavailable":true}
+{"size":20,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}],"query":{"filtered":{"query":{"query_string":{"query":${queryString},"analyze_wildcard":true}},"filter":{"bool":{"must":[]}}}},"fielddata_fields":["@timestamp"]}
+'''
+    tpl = Template(query_data)
+    searchResult = json.dumps(es.msearch(tpl.substitute(queryType = json.dumps(queryType), queryString = json.dumps(queryString))))
+    return response(0, data={"esQueryResult": searchResult})
+
+def getEsObject(request):
+    """根据配置信息，返回一个ES对象"""
+    datas = json.loads(request.body.decode())
+    port = 80
+    ssl = False
+    if "https" == datas["params"]["es_sechma"]:
+        port = 443
+        ssl = True
+    ip = datas["params"]["es_ip"]
+    if "" == datas["params"]["es_ip"] or datas["params"]["es_ip"] is None:
+        ip = datas["params"]["es_host"]
+    compress = False
+    if 1 == datas["params"]["compress"]:
+        compress = True
+    auth = ""
+    authUser = datas["params"]["auth_user"]
+    if datas["params"]["auth_user"] is None:
+        authUser = ""
+    authPwd = datas["params"]["auth_pwd"]
+    if datas["params"]["auth_pwd"] is None:
+        authPwd = ""
+    if "" != authPwd or "" != authPwd:
+        auth = authUser + ":" + authPwd
+    return Elasticsearch(
+        [{"host": ip, "port": port, "url_prefix": "elasticsearch"}],
+        headers={"kbn-version":"4.5.4","Host":datas["params"]["es_host"],"User-Agent":"Mozilla/5.0 Gecko/20100101 Firefox/68.0","Referer":"https://"+datas["params"]["es_host"]+"/app/kibana"},
+        timeout=30,
+        http_compress=compress,
+        use_ssl=ssl,
+        verify_certs=False,
+        http_auth=auth
+    )
 
 def response(code=0, data={}, message=""):
     """统一返回格式"""
