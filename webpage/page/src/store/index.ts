@@ -9,11 +9,17 @@ const opts = {
     desserts: [],
     isLoading: true,
     queryColumns: {
-      startTime: "",
-      endTime: "",
       page: 1
     },
-    taskSettingIndex: 0
+    taskSettingIndex: 0,
+    taskSettingInfo: {}, // 里面的placeholders是Placeholder[]，不是string
+    dialog: {
+      title: "",
+      message: "",
+      isShow: false
+    },
+    esTestResult: "",
+    esQueryResult: ""
   },
   mutations: {
     updateDesserts(state: any, playload: any): void {
@@ -28,8 +34,27 @@ const opts = {
     setQueryColumns(state: any, playload: any): void {
       state.queryColumns = playload.queryColumns;
     },
+    setTaskSettingInfo(state: any, playload: any): void {
+      state.taskSettingInfo = playload.taskSettingInfo;
+    },
+    setEsTestResult(state: any, playload: any): void {
+      state.esTestResult = playload.esTestResult;
+    },
+    setEsQueryResult(state: any, playload: any): void {
+      state.esQueryResult = playload.esQueryResult;
+    },
     setTaskSettingIndex(state: any, idx: number): void {
       state.taskSettingIndex = idx;
+    },
+    showDialog(state: any, playload: any): void {
+      state.dialog.title = playload.title;
+      state.dialog.message = playload.message;
+      state.dialog.isShow = true;
+    },
+    closeDialog(state: any, playload: any): void {
+      state.dialog.title = "";
+      state.dialog.message = "";
+      state.dialog.isShow = false;
     }
   }
 };
