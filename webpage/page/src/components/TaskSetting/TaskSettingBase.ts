@@ -23,6 +23,7 @@ export default class TaskSettingBase extends Vue {
         data[key] = "";
       }
     }
+    data.placeholders = JSON.stringify(data.placeholders); // placeholders需要转成JSON字符串再存起来
     axios.post(window.env.apiHost + "/pl/task-save-info", {
       params: data
     }).then((response: AxiosResponse): void => {

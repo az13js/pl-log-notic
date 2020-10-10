@@ -12,7 +12,7 @@ const opts = {
       page: 1
     },
     taskSettingIndex: 0,
-    taskSettingInfo: {},
+    taskSettingInfo: {}, // 里面的placeholders是Placeholder[]，不是string
     dialog: {
       title: "",
       message: "",

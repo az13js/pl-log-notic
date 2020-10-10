@@ -25,6 +25,7 @@
   import Component from "vue-class-component";
   import axios, {AxiosResponse} from "axios";
   import "../../defined.ts";
+  import Placeholder from "./TaskSettingPlaceholder/Placeholder.ts";
 
   @Component
   export default class Main extends Vue {
@@ -67,7 +68,16 @@
       }).then((response: AxiosResponse): void => {
         this.$store.commit("loadStatus", {isLoading: false});
         if (0 == response.data.code) {
-          this.$store.commit("setTaskSettingInfo", {taskSettingInfo: response.data.data.task});
+          /* 需要注意，这个地方设置 setTaskSettingInfo 前需要把JSON字符串转换成对应的Placeholder对象 */
+          let placeholders: Placeholder[] = [];
+          if ("" != response.data.data.task.placeholders) {
+            for (let placeholder of JSON.parse(response.data.data.task.placeholders)) {
+              placeholders.push(new Placeholder(placeholder.placeholder, placeholder.start, placeholder.end));
+            }
+          }
+          let saveData: any = JSON.parse(JSON.stringify(response.data.data.task));
+          saveData.placeholders = placeholders;
+          this.$store.commit("setTaskSettingInfo", {taskSettingInfo: saveData});
           this.$router.push(this.buttonList[this.taskSettingIndex].path);
         } else {
           this.$store.commit("showDialog", {message: response.data.message, title: "获取配置信息失败"});
