@@ -179,7 +179,7 @@ def task_test_es_query(request):
     """保存任务配置"""
     datas = json.loads(request.body.decode())
     searchResult = doQuery(getEsObject(request), datas["params"]["query_type"], datas["params"]["query_string"], round((time.time() - 24 * 60 * 60) * 1000))
-    return response(0, data={"esQueryResult": searchResult})
+    return response(0, data={"esQueryResult": searchResult.encode("utf-8").decode("unicode_escape")})
 
 @require_http_methods(["POST"])
 @csrf_exempt
@@ -240,7 +240,7 @@ def doQuery(esObject, queryType, queryString, gte):
     query_data='''{"query":{"bool":{"filter":{"range":{"@timestamp":{"gte":${gte},"format":"epoch_millis"}}}}}}'''
     tpl = Template(query_data)
     # 对UNICODE进行解码，方便中文环境
-    return json.dumps(esObject.search(tpl.substitute(gte = gte),index=queryType, q=queryString, ignore_unavailable=True, analyze_wildcard=True, size=100, track_scores=False, terminate_after=100)).encode("utf-8").decode("unicode_escape")
+    return json.dumps(esObject.search(tpl.substitute(gte = gte),index=queryType, q=queryString, ignore_unavailable=True, analyze_wildcard=True, size=100, track_scores=False, terminate_after=100))
 
 def response(code=0, data={}, message=""):
     """统一返回格式"""

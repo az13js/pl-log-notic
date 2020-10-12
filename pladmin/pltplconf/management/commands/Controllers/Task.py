@@ -13,10 +13,10 @@ class Task():
     def run(self, job):
         logger.debug("Task控制器开始执行，JOB=" + str(job))
         queryLog = TaskAnalysis().findLogs(job)
-        params = json.loads(queryLog.encode("unicode_escape").decode("utf-8"))
+        params = json.loads(queryLog)
         if "hits" in params and "hits" in params["hits"]:
             if len(params["hits"]["hits"]) >= job.task_setting.push_min:
-                message = TaskParser().parse(job.task_setting, queryLog)
+                message = TaskParser().parse(job.task_setting, queryLog.encode("utf-8").decode("unicode_escape"))
                 WXBot().send(job, message)
         else:
             logger.debug("找不到hits属性")
