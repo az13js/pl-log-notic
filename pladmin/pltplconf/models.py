@@ -45,6 +45,7 @@ class PlTaskSetting(models.Model):
     delay_sec = models.IntegerField("每隔多少秒查询一次 ES 服务器", default=1)
     push_min = models.IntegerField("查询到多少条结果触发推送", default=0)
     max_per_hour = models.FloatField("每小时推送限制", default=0.0)
+    kbn_version = models.CharField("Kibana版本号", max_length=15, default="")
 
     def __str__(self):
         if hasattr(self, "id"):

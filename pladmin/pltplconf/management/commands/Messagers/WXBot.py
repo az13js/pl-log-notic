@@ -26,6 +26,5 @@ class WXBot():
                     "content": pushMessage
                 }
             }
-            logger.debug(message)
             requests.post(url = taskSetting.wx_bot_addr, headers = {"Content-Type": "text/plain"}, json = data)
             PlPushLog(push_time = timezone.now(), job_pri_key = job.id).save()

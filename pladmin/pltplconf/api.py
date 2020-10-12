@@ -139,6 +139,7 @@ def task_save_info(request):
         task.delay_sec = datas["params"]["delay_sec"]
         task.push_min = datas["params"]["push_min"]
         task.max_per_hour = datas["params"]["max_per_hour"]
+        task.kbn_version = datas["params"]["kbn_version"]
         job = Pljob.objects.get(task_setting=task)
         job.delay_sec = task.delay_sec
         task.save()
@@ -219,9 +220,14 @@ def getEsObject(request):
         authPwd = ""
     if "" != authPwd or "" != authPwd:
         auth = authUser + ":" + authPwd
+    kbnVersion = ""
+    if "kbn_version" in datas["params"]:
+        kbnVersion = datas["params"]["kbn_version"]
+    if kbnVersion is None:
+        kbnVersion = ""
     return Elasticsearch(
         [{"host": ip, "port": port, "url_prefix": "elasticsearch"}],
-        headers={"kbn-version":"4.5.4","Host":datas["params"]["es_host"],"User-Agent":"Mozilla/5.0 Gecko/20100101 Firefox/68.0","Referer":"https://"+datas["params"]["es_host"]+"/app/kibana"},
+        headers={"kbn-version":kbnVersion,"Host":datas["params"]["es_host"],"User-Agent":"Mozilla/5.0 Gecko/20100101 Firefox/68.0","Referer":"https://"+datas["params"]["es_host"]+"/app/kibana"},
         timeout=30,
         http_compress=compress,
         use_ssl=ssl,
@@ -231,12 +237,9 @@ def getEsObject(request):
 
 def doQuery(esObject, queryType, queryString, gte):
     """执行 ES 查询"""
-    query_data='''{"index":[${queryType}],"ignore_unavailable":true}
-{"size":100,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}],"query":{"filtered":{"query":{"query_string":{"query":${queryString},"analyze_wildcard":true}},"filter":{"bool":{"must":[{"range":{"@timestamp":{"gte":${gte},"format":"epoch_millis"}}}],"must_not":[]}}}},"fielddata_fields":["@timestamp"]}
-'''
-#{"size":100,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}],"query":{"filtered":{"query":{"query_string":{"query":${queryString},"analyze_wildcard":true}},"filter":{"bool":{"must":[]}}}},"fielddata_fields":["@timestamp"]}
+    query_data='''{"query":{"bool":{"filter":{"range":{"@timestamp":{"gte":${gte},"format":"epoch_millis"}}}}}}'''
     tpl = Template(query_data)
-    return json.dumps(esObject.msearch(tpl.substitute(queryType = json.dumps(queryType), queryString = json.dumps(queryString), gte = gte)))
+    return json.dumps(esObject.search(tpl.substitute(gte = gte),index=queryType, q=queryString, ignore_unavailable=True, analyze_wildcard=True, size=100, track_scores=False, terminate_after=100))
 
 def response(code=0, data={}, message=""):
     """统一返回格式"""

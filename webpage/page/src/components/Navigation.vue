@@ -1,10 +1,10 @@
 <!-- 导航栏 -->
 <template>
-  <v-navigation-drawer app class="navigation-common-style" width="170px" mobile-breakpoint="400">
+  <v-navigation-drawer expand-on-hover app right class="navigation-common-style" width="170px" mobile-breakpoint="400">
     <v-list dense nav class="py-0">
       <v-list-item>
         <v-list-item-content>
-          <h1 class="title">
+          <h1 class="title" style="white-space:nowrap">
             <span>pl-log-notic</span>
           </h1>
           <!-- 对话框，失败时弹出，可以全局使用 -->
