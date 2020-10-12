@@ -13,7 +13,7 @@ class Task():
     def run(self, job):
         logger.debug("Task控制器开始执行，JOB=" + str(job))
         queryLog = TaskAnalysis().findLogs(job)
-        params = json.loads(queryLog)
+        params = json.loads(queryLog.encode("utf8"))
         if "hits" in params and "hits" in params["hits"]:
             if len(params["hits"]["hits"]) >= job.task_setting.push_min:
                 message = TaskParser().parse(job.task_setting, queryLog)
