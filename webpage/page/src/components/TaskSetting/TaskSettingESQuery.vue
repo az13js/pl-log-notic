@@ -8,7 +8,7 @@
     </v-row>
     <v-row>
       <v-col cols="12">
-        <v-text-field v-model="queryType" :disabled="isLoading" label="Index Pattern 设置（可以不填）" counter="500" clearable></v-text-field>
+        <v-text-field v-model="queryType" :disabled="isLoading" label="Index Pattern 设置" counter="500" clearable></v-text-field>
       </v-col>
     </v-row>
     <v-row>
