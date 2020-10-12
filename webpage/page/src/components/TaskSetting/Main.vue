@@ -43,12 +43,12 @@
       this.$store.commit("loadStatus", {isLoading: value});
     }
     buttonList: any[] = [
-      {name: "ES 地址", path: "TaskSettingESAddress", icon: "mdi-history"},
-      {name: "ES 查询条件", path: "TaskSettingESQuery", icon: "mdi-history"},
-      {name: "企业微信机器人", path: "TaskSettingBot", icon: "mdi-history"},
-      {name: "推送文本", path: "TaskSettingTemplate", icon: "mdi-history"},
-      {name: "占位符", path: "TaskSettingPlaceholder", icon: "mdi-history"},
-      {name: "检测和推送频率", path: "TaskSettingFrequency", icon: "mdi-history"},
+      {name: "ES 地址", path: "TaskSettingESAddress", icon: "mdi-dns"},
+      {name: "ES 查询条件", path: "TaskSettingESQuery", icon: "mdi-home"},
+      {name: "企业微信机器人", path: "TaskSettingBot", icon: "mdi-chat"},
+      {name: "推送文本", path: "TaskSettingTemplate", icon: "mdi-comment"},
+      {name: "占位符", path: "TaskSettingPlaceholder", icon: "mdi-details"},
+      {name: "检测和推送频率", path: "TaskSettingFrequency", icon: "mdi-timer"},
     ]
 
     /**
