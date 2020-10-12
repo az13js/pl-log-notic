@@ -239,7 +239,8 @@ def doQuery(esObject, queryType, queryString, gte):
     """执行 ES 查询"""
     query_data='''{"query":{"bool":{"filter":{"range":{"@timestamp":{"gte":${gte},"format":"epoch_millis"}}}}}}'''
     tpl = Template(query_data)
-    return json.dumps(esObject.search(tpl.substitute(gte = gte),index=queryType, q=queryString, ignore_unavailable=True, analyze_wildcard=True, size=100, track_scores=False, terminate_after=100))
+    # 对UNICODE进行解码，方便中文环境
+    return json.dumps(esObject.search(tpl.substitute(gte = gte),index=queryType, q=queryString, ignore_unavailable=True, analyze_wildcard=True, size=100, track_scores=False, terminate_after=100)).encode("utf-8").decode("unicode_escape")
 
 def response(code=0, data={}, message=""):
     """统一返回格式"""
