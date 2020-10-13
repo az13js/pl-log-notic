@@ -237,10 +237,12 @@ def getEsObject(request):
 
 def doQuery(esObject, queryType, queryString, gte):
     """执行 ES 查询"""
-    query_data='''{"query":{"bool":{"filter":{"range":{"@timestamp":{"gte":${gte},"format":"epoch_millis"}}}}}}'''
-    tpl = Template(query_data)
-    # 对UNICODE进行解码，方便中文环境
-    return json.dumps(esObject.search(tpl.substitute(gte = gte),index=queryType, q=queryString, ignore_unavailable=True, analyze_wildcard=True, size=100, track_scores=False, terminate_after=100))
+    realQueryString = queryString
+    if "" == realQueryString or realQueryString is None:
+        realQueryString = "@timestamp:[" + str(gte) + " TO " + str(round(time.time() * 1000)) + "]"
+    else:
+        realQueryString = realQueryString + " AND @timestamp:[" + str(gte) + " TO " + str(round(time.time() * 1000)) + "]"
+    return json.dumps(esObject.search(index=queryType, q=realQueryString, ignore_unavailable=True, analyze_wildcard=True, size=100, track_scores=False, terminate_after=100))
 
 def response(code=0, data={}, message=""):
     """统一返回格式"""
