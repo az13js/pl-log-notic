@@ -1,5 +1,6 @@
 import json
 import re
+import time
 import requests
 from django.http import JsonResponse
 from django.utils import timezone
@@ -11,12 +12,17 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core import serializers
 from django.forms.models import model_to_dict
 from elasticsearch import Elasticsearch
+from string import Template
 from pltplconf.models import Pljob, PlTaskSetting
 
 @require_http_methods(["GET"])
 def task_list(request):
     """返回任务列表"""
-    tasks = PlTaskSetting.objects.order_by('-id').all()
+    taskName = request.GET.get('taskName')
+    if "" != taskName and taskName is not None:
+        tasks = PlTaskSetting.objects.filter(task_name__icontains=taskName).order_by('-id').all()
+    else:
+        tasks = PlTaskSetting.objects.order_by('-id').all()
     paginator = Paginator(tasks, 5)
     page = request.GET.get('page')
     try:
@@ -133,7 +139,11 @@ def task_save_info(request):
         task.delay_sec = datas["params"]["delay_sec"]
         task.push_min = datas["params"]["push_min"]
         task.max_per_hour = datas["params"]["max_per_hour"]
+        task.kbn_version = datas["params"]["kbn_version"]
+        job = Pljob.objects.get(task_setting=task)
+        job.delay_sec = task.delay_sec
         task.save()
+        job.save()
         result = response()
     except ObjectDoesNotExist:
         result = response(-1, message="任务不存在，可能已经被删除。")
@@ -144,78 +154,95 @@ def task_save_info(request):
 @require_http_methods(["POST"])
 @csrf_exempt
 def task_test_es_link(request):
-    """保存任务配置"""
-    datas = json.loads(request.body.decode())
-    try:
-        port = 80
-        ssl = False
-        if "https" == datas["params"]["es_sechma"]:
-            port = 443
-            ssl = True
-        ip = datas["params"]["es_ip"]
-        if "" == datas["params"]["es_ip"] or datas["params"]["es_ip"] is None:
-            ip = datas["params"]["es_host"]
-        compress = False
-        if 1 == datas["params"]["compress"]:
-            compress = True
-        auth = ""
-        authUser = datas["params"]["auth_user"]
-        if datas["params"]["auth_user"] is None:
-            authUser = ""
-        authPwd = datas["params"]["auth_pwd"]
-        if datas["params"]["auth_pwd"] is None:
-            authPwd = ""
-        if "" != authPwd or "" != authPwd:
-            auth = authUser + ":" + authPwd
-        es = Elasticsearch(
-            [{"host": ip, "port": port, "url_prefix": "elasticsearch"}],
-            headers={"Host":datas["params"]["es_host"],"User-Agent":"Mozilla/5.0 Gecko/20100101 Firefox/68.0","Referer":"https://"+datas["params"]["es_host"]+"/app/kibana"},
-            timeout=30,
-            http_compress=compress,
-            use_ssl=ssl,
-            verify_certs=False,
-            http_auth=auth
-        )
-        result = response(0, data={
-            "esTestResult": es.info(),
-            "debug": {
-                "host": ip,
-                "port": port,
-                "headers": {"Host":datas["params"]["es_host"],"User-Agent":"Mozilla/5.0 Gecko/20100101 Firefox/68.0","Referer":"https://"+datas["params"]["es_host"]+"/app/kibana"},
-                "http_compress": compress,
-                "use_ssl": ssl,
-                "http_auth": auth
-            }
-        })
-    except ObjectDoesNotExist:
-        result = response(-1, message="任务不存在，可能已经被删除。")
-    except DatabaseError:
-        result = response(-2, message="状态修改失败。")
-    return result
+    """测试ES连接配置"""
+    return response(0, data={"esTestResult": getEsObject(request).info()})
 
 @require_http_methods(["POST"])
 @csrf_exempt
 def task_test_wxbot_address(request):
     """测试企业微信地址"""
     datas = json.loads(request.body.decode())
-    try:
-        address = datas["params"]["wx_bot_addr"]
-        if datas["params"]["wx_bot_addr"] is None:
-            address = ""
-        data = {
-            "msgtype": "text",
-            "text": {
-                "content": "【企业微信机器人测试消息】大家好。"
-            }
+    address = datas["params"]["wx_bot_addr"]
+    data = {
+        "msgtype": "text",
+        "text": {
+            "content": "【企业微信机器人测试消息】大家好。"
         }
-        result = response(0, data={
-            "wxTestResult": requests.post(url = address, headers = {"Content-Type": "text/plain"}, json = data).content.decode()
-        })
-    except ObjectDoesNotExist:
-        result = response(-1, message="任务不存在，可能已经被删除。")
-    except DatabaseError:
-        result = response(-2, message="状态修改失败。")
-    return result
+    }
+    return response(0, data={
+        "wxTestResult": requests.post(url = address, headers = {"Content-Type": "text/plain"}, json = data).content.decode()
+    })
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def task_test_es_query(request):
+    """保存任务配置"""
+    datas = json.loads(request.body.decode())
+    searchResult = doQuery(getEsObject(request), datas["params"]["query_type"], datas["params"]["query_string"], round((time.time() - 24 * 60 * 60) * 1000))
+    return response(0, data={"esQueryResult": searchResult.encode("utf-8").decode("unicode_escape")})
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def task_test_send_template(request):
+    """测试发送模板"""
+    datas = json.loads(request.body.decode())
+    address = datas["params"]["wx_bot_addr"]
+    data = {
+        "msgtype": "text",
+        "text": {
+            "content": datas["params"]["template"]
+        }
+    }
+    return response(0, data={
+        "sendResult": requests.post(url = address, headers = {"Content-Type": "text/plain"}, json = data).content.decode()
+    })
+
+def getEsObject(request):
+    """根据配置信息，返回一个ES对象"""
+    datas = json.loads(request.body.decode())
+    port = 80
+    ssl = False
+    if "https" == datas["params"]["es_sechma"]:
+        port = 443
+        ssl = True
+    ip = datas["params"]["es_ip"]
+    if "" == datas["params"]["es_ip"] or datas["params"]["es_ip"] is None:
+        ip = datas["params"]["es_host"]
+    compress = False
+    if 1 == datas["params"]["compress"]:
+        compress = True
+    auth = ""
+    authUser = datas["params"]["auth_user"]
+    if datas["params"]["auth_user"] is None:
+        authUser = ""
+    authPwd = datas["params"]["auth_pwd"]
+    if datas["params"]["auth_pwd"] is None:
+        authPwd = ""
+    if "" != authPwd or "" != authPwd:
+        auth = authUser + ":" + authPwd
+    kbnVersion = ""
+    if "kbn_version" in datas["params"]:
+        kbnVersion = datas["params"]["kbn_version"]
+    if kbnVersion is None:
+        kbnVersion = ""
+    return Elasticsearch(
+        [{"host": ip, "port": port, "url_prefix": "elasticsearch"}],
+        headers={"kbn-version":kbnVersion,"Host":datas["params"]["es_host"],"User-Agent":"Mozilla/5.0 Gecko/20100101 Firefox/68.0","Referer":"https://"+datas["params"]["es_host"]+"/app/kibana"},
+        timeout=30,
+        http_compress=compress,
+        use_ssl=ssl,
+        verify_certs=False,
+        http_auth=auth
+    )
+
+def doQuery(esObject, queryType, queryString, gte):
+    """执行 ES 查询"""
+    realQueryString = queryString
+    if "" == realQueryString or realQueryString is None:
+        realQueryString = "@timestamp:[" + str(gte) + " TO " + str(round(time.time() * 1000)) + "]"
+    else:
+        realQueryString = realQueryString + " AND @timestamp:[" + str(gte) + " TO " + str(round(time.time() * 1000)) + "]"
+    return json.dumps(esObject.search(index=queryType, q=realQueryString, ignore_unavailable=True, analyze_wildcard=True, size=100, track_scores=False, terminate_after=100))
 
 def response(code=0, data={}, message=""):
     """统一返回格式"""

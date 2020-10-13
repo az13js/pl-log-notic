@@ -12,13 +12,14 @@ const opts = {
       page: 1
     },
     taskSettingIndex: 0,
-    taskSettingInfo: {},
+    taskSettingInfo: {}, // 里面的placeholders是Placeholder[]，不是string
     dialog: {
       title: "",
       message: "",
       isShow: false
     },
-    esTestResult: ""
+    esTestResult: "",
+    esQueryResult: ""
   },
   mutations: {
     updateDesserts(state: any, playload: any): void {
@@ -38,6 +39,9 @@ const opts = {
     },
     setEsTestResult(state: any, playload: any): void {
       state.esTestResult = playload.esTestResult;
+    },
+    setEsQueryResult(state: any, playload: any): void {
+      state.esQueryResult = playload.esQueryResult;
     },
     setTaskSettingIndex(state: any, idx: number): void {
       state.taskSettingIndex = idx;

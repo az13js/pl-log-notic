@@ -2,11 +2,14 @@
 <template>
   <v-container class="pt-0 mt-0">
     <v-row>
-      <v-col cols="6">
+      <v-col cols="4">
         <v-text-field :disabled="isLoading" v-model="esHost" label="ES 服务器主机名（如www.example.com）" counter="100" clearable></v-text-field>
       </v-col>
-      <v-col cols="6">
+      <v-col cols="4">
         <v-text-field :disabled="isLoading" v-model="esAddress" label="IP地址（可不填）" counter="100" clearable></v-text-field>
+      </v-col>
+      <v-col cols="4">
+        <v-text-field :disabled="isLoading" v-model="kbnVersion" label="kbn-version" counter="100" clearable></v-text-field>
       </v-col>
     </v-row>
     <v-row>
@@ -50,12 +53,6 @@
 
   @Component
   export default class TaskSettingESAddress extends TaskSettingBase {
-    get isLoading() {
-      return this.$store.state.isLoading;
-    }
-    set isLoading(value: boolean) {
-      this.$store.commit("loadStatus", {isLoading: value});
-    }
     set esHost(v: string) {
       let src: any = JSON.parse(JSON.stringify(this.$store.state.taskSettingInfo));
       src.es_host = v;
@@ -67,6 +64,14 @@
     set esAddress(v: string) {
       let src: any = JSON.parse(JSON.stringify(this.$store.state.taskSettingInfo));
       src.es_ip = v;
+      this.$store.commit("setTaskSettingInfo", {taskSettingInfo: src});
+    }
+    get kbnVersion(): string {
+      return this.$store.state.taskSettingInfo.kbn_version;
+    }
+    set kbnVersion(v: string) {
+      let src: any = JSON.parse(JSON.stringify(this.$store.state.taskSettingInfo));
+      src.kbn_version = v;
       this.$store.commit("setTaskSettingInfo", {taskSettingInfo: src});
     }
     get esAddress(): string {

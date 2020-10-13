@@ -5,7 +5,7 @@
         <v-text-field :disabled="isLoading" v-model="taskName" label="任务名称" counter="64" clearable ></v-text-field>
       </v-col>
       <v-col cols="1">
-        <v-btn :disabled="isLoading" color="primary" fab>搜索</v-btn>
+        <v-btn :disabled="isLoading" @click="search()" color="primary" fab>搜索</v-btn>
       </v-col>
       <v-col cols="1">
         <!-- 对话框，点击新建按钮弹出，用于填写新建的任务名称 -->
@@ -138,6 +138,17 @@
     public closeFailDialog(): void {
       this.createFailDialog = false;
       this.errorMessage = "";
+    }
+
+    public search(): void {
+      let host: string = window.env.apiHost;
+      this.$store.commit("loadStatus", {isLoading: true});
+      axios.get(host + "/pl/task-list", {
+        params: this.$store.state.queryColumns
+      }).then((response: AxiosResponse): void => {
+        this.$store.commit("updateDesserts", {desserts: response.data.data.list});
+        this.$store.commit("loadStatus", {isLoading: false});
+      });
     }
 
     /**

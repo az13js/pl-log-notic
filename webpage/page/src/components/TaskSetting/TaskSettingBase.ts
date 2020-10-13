@@ -8,6 +8,13 @@ import "../../defined.ts";
  */
 @Component
 export default class TaskSettingBase extends Vue {
+  get isLoading() {
+    return this.$store.state.isLoading;
+  }
+  set isLoading(value: boolean) {
+    this.$store.commit("loadStatus", {isLoading: value});
+  }
+
   public save(): void {
     this.$store.commit("loadStatus", {isLoading: true});
     let data: any = JSON.parse(JSON.stringify(this.$store.state.taskSettingInfo));
@@ -16,6 +23,7 @@ export default class TaskSettingBase extends Vue {
         data[key] = "";
       }
     }
+    data.placeholders = JSON.stringify(data.placeholders); // placeholders需要转成JSON字符串再存起来
     axios.post(window.env.apiHost + "/pl/task-save-info", {
       params: data
     }).then((response: AxiosResponse): void => {

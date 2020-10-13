@@ -55,11 +55,15 @@
 
   @Component
   export default class TaskSettingPlaceholder extends TaskSettingBase {
-    public placeholders: Placeholder[] = [
-      new Placeholder("a", "b", "c"),
-      new Placeholder("d", "e", "f"),
-      new Placeholder("g", "h", "i")
-    ]
+    set placeholders(v: Placeholder[]) {
+      let src: any = this.$store.state.taskSettingInfo;
+      src.placeholders = v;
+      this.$store.commit("setTaskSettingInfo", {taskSettingInfo: src});
+    }
+    get placeholders(): Placeholder[] {
+      return this.$store.state.taskSettingInfo.placeholders;
+    }
+
     public testInputText: string = ""
     public testTemplateText: string = ""
     public testOutputText: string = ""
