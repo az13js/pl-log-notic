@@ -61,6 +61,8 @@
       this.$store.commit("setTaskSettingInfo", {taskSettingInfo: src});
     }
     get placeholders(): Placeholder[] {
+      console.log("getter返回的数据是");
+      console.log(this.$store.state.taskSettingInfo.placeholders);
       return this.$store.state.taskSettingInfo.placeholders;
     }
 

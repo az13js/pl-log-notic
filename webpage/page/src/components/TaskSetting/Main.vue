@@ -77,6 +77,8 @@
           }
           let saveData: any = JSON.parse(JSON.stringify(response.data.data.task));
           saveData.placeholders = placeholders;
+          console.log("传递给store的数据是");
+          console.log(saveData);
           this.$store.commit("setTaskSettingInfo", {taskSettingInfo: saveData});
           this.$router.push(this.buttonList[this.taskSettingIndex].path);
         } else {
