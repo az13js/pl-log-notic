@@ -240,10 +240,11 @@ def getEsObject(request):
 def doQuery(esObject, queryType, queryString, gte):
     """执行 ES 查询"""
     realQueryString = queryString
+    queryTime = "[" + getTimeformate(gte) + " TO " + getTimeformate(datetime.now(timezone.utc)) + "]"
     if "" == realQueryString or realQueryString is None:
-        realQueryString = "@timestamp:[" + getTimeformate(gte) + " TO " + getTimeformate(datetime.now(timezone.utc)) + "]"
+        realQueryString = "@timestamp:" + queryTime + " OR timestamp:" + queryTime
     else:
-        realQueryString = realQueryString + " AND @timestamp:[" + getTimeformate(gte) + " TO " + getTimeformate(datetime.now(timezone.utc)) + "]"
+        realQueryString = realQueryString + " AND (@timestamp:" + queryTime + " OR timestamp:" + queryTime + ")"
     return json.dumps(esObject.search(index=queryType, q=realQueryString, ignore_unavailable=True, analyze_wildcard=True, size=100, track_scores=False, terminate_after=100))
 
 def getTimeformate(dateTime):
