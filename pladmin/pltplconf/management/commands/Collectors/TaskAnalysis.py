@@ -8,6 +8,7 @@ https_poxy="http://user:password@www.example.cn:1000"
 import json
 import time
 import logging
+from datetime import timedelta, datetime, timezone
 from pltplconf import api
 from django.forms.models import model_to_dict
 
@@ -20,7 +21,7 @@ class TaskAnalysis():
             api.getEsObject(FakeRequest(job.task_setting)),
             job.task_setting.query_type,
             job.task_setting.query_string,
-            round((time.time() - float(job.delay_sec)) * 1000)
+            datetime.now(timezone.utc) - timedelta(seconds=job.delay_sec)
         )
 
 # 模拟request的属性
