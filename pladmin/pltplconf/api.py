@@ -2,6 +2,7 @@ import json
 import re
 import time
 import requests
+from datetime import timedelta, datetime
 from django.http import JsonResponse
 from django.utils import timezone
 from django.db import transaction, DatabaseError
@@ -178,8 +179,9 @@ def task_test_wxbot_address(request):
 def task_test_es_query(request):
     """保存任务配置"""
     datas = json.loads(request.body.decode())
-    searchResult = doQuery(getEsObject(request), datas["params"]["query_type"], datas["params"]["query_string"], round((time.time() - 24 * 60 * 60) * 1000))
+    searchResult = doQuery(getEsObject(request), datas["params"]["query_type"], datas["params"]["query_string"], datetime.now(timezone.utc) - timedelta(days=1))
     return response(0, data={"esQueryResult": searchResult.encode("utf-8").decode("unicode_escape")})
+    #return response(0, data={"esQueryResult": searchResult})
 
 @require_http_methods(["POST"])
 @csrf_exempt
@@ -239,10 +241,20 @@ def doQuery(esObject, queryType, queryString, gte):
     """执行 ES 查询"""
     realQueryString = queryString
     if "" == realQueryString or realQueryString is None:
-        realQueryString = "@timestamp:[" + str(gte) + " TO " + str(round(time.time() * 1000)) + "]"
+        realQueryString = "@timestamp:[" + getTimeformate(gte) + " TO " + getTimeformate(datetime.now(timezone.utc)) + "]"
     else:
-        realQueryString = realQueryString + " AND @timestamp:[" + str(gte) + " TO " + str(round(time.time() * 1000)) + "]"
+        realQueryString = realQueryString + " AND @timestamp:[" + getTimeformate(gte) + " TO " + getTimeformate(datetime.now(timezone.utc)) + "]"
     return json.dumps(esObject.search(index=queryType, q=realQueryString, ignore_unavailable=True, analyze_wildcard=True, size=100, track_scores=False, terminate_after=100))
+
+def getTimeformate(dateTime):
+    #dateTime = datetime.now(timezone.utc)
+    year = '%(value)04d'%{'value':dateTime.year}
+    month = '%(value)02d'%{'value':dateTime.month}
+    day = '%(value)02d'%{'value':dateTime.day}
+    hour = '%(value)02d'%{'value':dateTime.hour}
+    minute = '%(value)02d'%{'value':dateTime.minute}
+    second = '%(value)02d'%{'value':dateTime.second}
+    return year + "-" + month + "-" + day + "T" + hour + ":" + minute + ":" + second + "Z"
 
 def response(code=0, data={}, message=""):
     """统一返回格式"""
