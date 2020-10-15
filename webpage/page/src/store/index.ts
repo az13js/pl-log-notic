@@ -35,6 +35,8 @@ const opts = {
       state.queryColumns = playload.queryColumns;
     },
     setTaskSettingInfo(state: any, playload: any): void {
+      console.log("store收到的数据是");
+      console.log(playload.taskSettingInfo);
       state.taskSettingInfo = playload.taskSettingInfo;
     },
     setEsTestResult(state: any, playload: any): void {
