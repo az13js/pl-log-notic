@@ -9,5 +9,3 @@ class PltplconfConfig(AppConfig):
 
     def ready(self):
         """服务器启动后初始化应用"""
-        logger.info("初始化pl-log-notic")
-
