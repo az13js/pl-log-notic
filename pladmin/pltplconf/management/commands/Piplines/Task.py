@@ -12,5 +12,5 @@ class Task():
 
     def handle(self, job):
         if 5 == job.system_type and 1 == job.task_setting.status:
-            logger.debug("任务流水线正在处理，job=" + str(job) + ",关联的配置对象是，" + str(job.task_setting))
+            logger.debug("正在处理，job id=" + str(job.id) + "，模板文字：" + job.task_setting.template)
             self.TaskController.run(job)

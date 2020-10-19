@@ -15,11 +15,10 @@ class WXBot():
         taskSetting = job.task_setting
         # 没达到推送频率限制的可以推送：
         if PlPushLog.objects.filter(job_pri_key=job.id, push_time__gte=timezone.now() - timedelta(hours=1)).count() < taskSetting.max_per_hour:
-            logger.debug("WXBot 向企业微信群发送消息，消息内容是")
             pushMessage = message
             if len(pushMessage) > 1024:
                 pushMessage = pushMessage[0:1024]
-            logger.debug(pushMessage)
+            logger.debug("实际推送的消息：\n" + pushMessage)
             data = {
                 "msgtype": "text",
                 "text": {
@@ -28,3 +27,5 @@ class WXBot():
             }
             requests.post(url = taskSetting.wx_bot_addr, headers = {"Content-Type": "text/plain"}, json = data)
             PlPushLog(push_time = timezone.now(), job_pri_key = job.id).save()
+        else:
+            logger.debug("已达到推送频率的极限，不会推送。")

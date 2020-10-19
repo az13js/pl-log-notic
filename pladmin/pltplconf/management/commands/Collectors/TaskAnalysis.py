@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class TaskAnalysis():
     def findLogs(self, job):
-        logger.debug("es查询采集部分，收到命令：" + job.task_setting.query_string)
+        logger.debug("查询命令是：" + job.task_setting.query_string)
         return api.doQuery(
             api.getEsObject(FakeRequest(job.task_setting)),
             job.task_setting.query_type,

@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 
 class TaskParser():
     def parse(self, taskSetting, queryLog):
+        logger.debug("任务名：" + str(taskSetting.task_name) + "，占位符配置：\n" + taskSetting.placeholders)
         if "" != taskSetting.placeholders:
             placeholdersData = json.loads(taskSetting.placeholders)
         else:
@@ -18,15 +19,21 @@ class TaskParser():
 
 class TemplateParser():
     """模板解析，这个的逻辑跟前端页面typescript的逻辑一致"""
-    _placeholders = []
-    _placeholderResults = []
-
     def __init__(self, placeholders, sourceText):
+        self._placeholderResults = []
         self._placeholders = placeholders
+        logger.debug("模板解析初始化。占位符信息：")
         for placeholder in placeholders:
+            logger.debug("占位符名称：" + placeholder.placeholder + "，开始：" + placeholder.start + "，结束：" + placeholder.end)
             self._placeholderResults.append(placeholder.parse(sourceText))
 
     def parse(self, templateText):
+        """功能，给定一个模板，把占位符替换成实际的数据
+        参数：
+            templateText 字符串，文字模板，里面可以有占位符
+        返回值：
+            返回字符串
+        """
         replaceString = templateText
         for key in range(len(self._placeholders)):
             placeholder = self._placeholders[key]
@@ -46,6 +53,7 @@ class Placeholder():
         self.placeholder = placeholder
         self.start = start
         self.end = end
+        logger.debug("Placeholder类被实例化，信息：" + placeholder + "," + start + "," + end)
 
     def parse(self, contents):
         if "" == self.placeholder:

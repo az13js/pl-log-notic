@@ -34,7 +34,7 @@ class Command(BaseCommand):
                     job.save()
                     # 执行job
                     self.handleJob(job)
-                self.stdout.write(self.style.SUCCESS("执行了 " + str(exec_num) + " 个任务"))
+                self.stdout.write(self.style.SUCCESS("处理了 " + str(exec_num) + " 个任务"))
                 last_run_time = now_time # 记录最后一次执行的时间
 
                 exec_time = timezone.now() - now_time # 计算一个 for 循环消耗的时间
