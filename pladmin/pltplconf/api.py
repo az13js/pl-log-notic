@@ -16,6 +16,8 @@ from elasticsearch import Elasticsearch
 from string import Template
 from pltplconf.models import Pljob, PlTaskSetting
 
+######################## 支持异常检测然后报警推送 ########################
+
 @require_http_methods(["GET"])
 def task_list(request):
     """返回任务列表"""
@@ -198,6 +200,10 @@ def task_test_send_template(request):
     return response(0, data={
         "sendResult": requests.post(url = address, headers = {"Content-Type": "text/plain"}, json = data).content.decode()
     })
+
+######################## TODO 下面需要支持流量检测然后报警推送 ########################
+
+######################## 共用函数 ########################
 
 def getEsObject(request):
     """根据配置信息，返回一个ES对象"""

@@ -76,7 +76,13 @@
       this.placeholders.splice(index, 1);
     }
     public testPlaceholders(): void {
-      let parser: TemplateParser = new TemplateParser(this.placeholders, this.testInputText);
+      // 偶然出现this.placeholders中的元素不存在parse方法的报错，由于找不到原因，这里新建Placeholder对象，尝试避免出错。
+      let placeholders: Placeholder[] = this.placeholders;
+      let newPlaceholders: Placeholder[] = [];
+      for (let p of placeholders) {
+        newPlaceholders.push(new Placeholder(p.placeholder, p.start, p.end));
+      }
+      let parser: TemplateParser = new TemplateParser(newPlaceholders, this.testInputText);
       this.testOutputText = parser.parse(this.testTemplateText);
     }
   }
