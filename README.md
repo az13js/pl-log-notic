@@ -72,3 +72,20 @@
     python3 manage.py createsuperuser
 
 按照提示填写用户信息和密码就行了。
+
+## 一些辅助功能
+
+### 命令行导出大量日志，从ES作为数据来源
+
+使用的时候需要设置一些环境变量：
+
+    JOB_NAME  任务的名称，这个在web界面监控列表可以看到，这个JOB会作为查询方式和通配符配置
+    START     开始时间，例如：2020-10-20T00:00:00+0800，字符串
+    END       结束时间，例如：2020-10-20T01:00:00+0800，字符串
+    FLODER    文件夹，导出的数据存在里面
+    CACHETIME 游标缓存时间 1m 表示1分钟
+
+示例：
+
+    $ cd pladmin
+    $ DEBUG=False JOB_NAME="测试任务" START="2020-10-21T00:00:00+08:00" END="2020-10-21T10:00:00+08:00" FLODER="/tmp/exports" CACHETIME="5m" python3 manage.py export_worker
