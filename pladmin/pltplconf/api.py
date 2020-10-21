@@ -277,12 +277,14 @@ def response(code=0, data={}, message=""):
 def fixQuery(job, startTime, endTime):
     """临时函数，导出 ES 测试"""
     i = 0
-    for r in ElasticsearchFromQuery(FakeRequestX(job.task_setting), startTime, endTime):
-        fw = open("p" + str(i) + ".json", "w")
-        fw.write(json.dumps(r))
-        fw.close()
-        i = i + 1
-    exit(0)
+    try:
+        for r in ElasticsearchLongQuery(FakeRequestX(job.task_setting), "1m", startTime, endTime):
+            fw = open("p" + str(i) + ".json", "w")
+            fw.write(json.dumps(r))
+            fw.close()
+            i = i + 1
+    except StopIteration:
+        return
 
 # 模拟request的属性
 class FakeRequestX():
@@ -311,22 +313,22 @@ class ElasticsearchLongQuery:
             self._lastQueryResult = self.firstQuery()
             self._lastScrollId = self._lastQueryResult["_scroll_id"]
             if 0 == len(self._lastQueryResult["hits"]["hits"]):
-                return StopIteration()
+                raise StopIteration()
             return self._lastQueryResult
         self._lastQueryResult = self.nextQuery()
-        self._lastScrollId = self._lastQueryResult["_scroll_id"]
+        #self._lastScrollId = self._lastQueryResult["_scroll_id"]
         if 0 == len(self._lastQueryResult["hits"]["hits"]):
-            return StopIteration()
+            raise StopIteration()
         return self._lastQueryResult
 
     def firstQuery(self):
         datas = json.loads(self._request.body.decode())
         """执行首次 ES 查询"""
-        return self._esObject.search(index=datas["params"]["query_type"], q=self.queryString(), ignore_unavailable=True, analyze_wildcard=True, size=10, terminate_after=10000, track_scores=False, scroll=self._cacheTime)
+        return self._esObject.search(index=datas["params"]["query_type"], q=self.queryString(), ignore_unavailable=True, analyze_wildcard=True, size=10, terminate_after=1000000, track_scores=False, scroll=self._cacheTime)
 
     def nextQuery(self):
         """执行非首次 ES 查询"""
-        return self._esObject.search(json.dumps({"scroll_id": self._lastScrollId}), ignore_unavailable=True, analyze_wildcard=True, size=10, terminate_after=10000, track_scores=False, scroll=self._cacheTime)
+        return self._esObject.scroll(scroll_id = self._lastScrollId, scroll="1m")
 
     def queryString(self):
         datas = json.loads(self._request.body.decode())
