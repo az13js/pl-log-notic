@@ -49,6 +49,7 @@
       {name: "推送文本", path: "TaskSettingTemplate", icon: "mdi-comment"},
       {name: "占位符", path: "TaskSettingPlaceholder", icon: "mdi-details"},
       {name: "检测和推送频率", path: "TaskSettingFrequency", icon: "mdi-timer"},
+      {name: "数据导出", path: "TaskSettingExport", icon: "mdi-download"}
     ]
 
     /**

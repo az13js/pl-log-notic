@@ -15,6 +15,8 @@ from django.forms.models import model_to_dict
 from elasticsearch import Elasticsearch
 from string import Template
 from pltplconf.models import Pljob, PlTaskSetting
+from pltplconf.management.commands.export_worker import FakeRequest
+from pltplconf.management.commands.Parsers.TaskParser import TaskParser
 
 ######################## 支持异常检测然后报警推送 ########################
 
@@ -181,7 +183,7 @@ def task_test_wxbot_address(request):
 def task_test_es_query(request):
     """保存任务配置"""
     datas = json.loads(request.body.decode())
-    searchResult = doQuery(getEsObject(request), datas["params"]["query_type"], datas["params"]["query_string"], datetime.now(timezone.utc) - timedelta(days=1))
+    searchResult = doQuery(getEsObject(request), datas["params"]["query_type"], datas["params"]["query_string"], datetime.now() - timedelta(days=1))
     return response(0, data={"esQueryResult": searchResult.encode("utf-8").decode("unicode_escape")})
     #return response(0, data={"esQueryResult": searchResult})
 
@@ -200,6 +202,25 @@ def task_test_send_template(request):
     return response(0, data={
         "sendResult": requests.post(url = address, headers = {"Content-Type": "text/plain"}, json = data).content.decode()
     })
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def task_export_test(request):
+    """测试导出"""
+    try:
+        datas = json.loads(request.body.decode())
+        taskSetting = PlTaskSetting.objects.get(id=datas["params"]["id"])
+        es = getEsObject(FakeRequest(taskSetting))
+        startTime = datetime.strptime(datas["params"]["setting"]["startDate"] + " " + datas["params"]["setting"]["startTime"], "%Y-%m-%d %H:%M:%S")
+        endTime = datetime.strptime(datas["params"]["setting"]["endDate"] + " " + datas["params"]["setting"]["endTime"], "%Y-%m-%d %H:%M:%S")
+        queryResult = doQuery(es, taskSetting.query_type, taskSetting.query_string, startTime, endTime)
+        message = TaskParser().parse(taskSetting, queryResult.encode("utf-8").decode("unicode_escape"), datas["params"]["setting"]["template"])
+        result = response(0, data={"result": message})
+    except ObjectDoesNotExist:
+        result = response(-1, message="任务不存在，可能已经被删除。")
+    except DatabaseError:
+        result = response(-2, message="数据库查询异常")
+    return result
 
 ######################## TODO 下面需要支持流量检测然后报警推送 ########################
 
@@ -243,10 +264,22 @@ def getEsObject(request):
         http_auth=auth
     )
 
-def doQuery(esObject, queryType, queryString, gte):
-    """执行 ES 查询"""
+def doQuery(esObject, queryType, queryString, gte, endTime = None):
+    """
+        执行 ES 查询
+    参数：
+        esObject: ES对象
+        queryType: 查询的index
+        queryString: 查询的语句
+        gte: 一个datetime对象，查询的开始时间
+        endTime: 默认是 None，可以传一个结束时间，datetime对象
+    返回值：字符串
+    """
     realQueryString = queryString
-    queryTime = "[" + getTimeformate(gte) + " TO " + getTimeformate(datetime.now(timezone.utc)) + "]"
+    if endTime is None:
+        queryTime = "[" + getTimeformate(gte) + " TO " + getTimeformate(datetime.now()) + "]"
+    else:
+        queryTime = "[" + getTimeformate(gte) + " TO " + getTimeformate(endTime) + "]"
     if "" == realQueryString or realQueryString is None:
         realQueryString = "@timestamp:" + queryTime + " OR timestamp:" + queryTime
     else:
@@ -254,14 +287,13 @@ def doQuery(esObject, queryType, queryString, gte):
     return json.dumps(esObject.search(index=queryType, q=realQueryString, ignore_unavailable=True, analyze_wildcard=True, size=100, track_scores=False, terminate_after=100))
 
 def getTimeformate(dateTime):
-    #dateTime = datetime.now(timezone.utc)
     year = '%(value)04d'%{'value':dateTime.year}
     month = '%(value)02d'%{'value':dateTime.month}
     day = '%(value)02d'%{'value':dateTime.day}
     hour = '%(value)02d'%{'value':dateTime.hour}
     minute = '%(value)02d'%{'value':dateTime.minute}
     second = '%(value)02d'%{'value':dateTime.second}
-    return year + "-" + month + "-" + day + "T" + hour + ":" + minute + ":" + second + "Z"
+    return year + "-" + month + "-" + day + "T" + hour + ":" + minute + ":" + second + "+0800"
 
 def response(code=0, data={}, message=""):
     """统一返回格式"""

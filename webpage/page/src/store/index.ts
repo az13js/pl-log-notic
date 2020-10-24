@@ -19,7 +19,14 @@ const opts = {
       isShow: false
     },
     esTestResult: "",
-    esQueryResult: ""
+    esQueryResult: "",
+    exportSetting: {
+      startDate: "",
+      startTime: "",
+      endDate: "",
+      endTime: "",
+      template: ""
+    }
   },
   mutations: {
     updateDesserts(state: any, playload: any): void {
@@ -35,8 +42,6 @@ const opts = {
       state.queryColumns = playload.queryColumns;
     },
     setTaskSettingInfo(state: any, playload: any): void {
-      console.log("store收到的数据是");
-      console.log(playload.taskSettingInfo);
       state.taskSettingInfo = playload.taskSettingInfo;
     },
     setEsTestResult(state: any, playload: any): void {
@@ -57,6 +62,13 @@ const opts = {
       state.dialog.title = "";
       state.dialog.message = "";
       state.dialog.isShow = false;
+    },
+    setExportSetting(state: any, playload: any): void {
+      state.exportSetting.startDate = playload.startDate;
+      state.exportSetting.startTime = playload.startTime;
+      state.exportSetting.endDate = playload.endDate;
+      state.exportSetting.endTime = playload.endTime;
+      state.exportSetting.template = playload.template;
     }
   }
 };

@@ -47,7 +47,6 @@
 </template>
 
 <script lang="ts">
-  import Vue from "vue";
   import Component from "vue-class-component";
   import Placeholder from "./TaskSettingPlaceholder/Placeholder.ts";
   import TemplateParser from "./TaskSettingPlaceholder/TemplateParser.ts";
@@ -69,6 +68,13 @@
     public testInputText: string = ""
     public testTemplateText: string = ""
     public testOutputText: string = ""
+
+    public mounted(): void {
+      if ("" != this.$store.state.esQueryResult && "" == this.testInputText) {
+        this.testInputText = this.$store.state.esQueryResult;
+      }
+    }
+
     public addEmptyPlaceholder(): void {
       this.placeholders.push(new Placeholder("", "", ""))
     }
