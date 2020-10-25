@@ -64,18 +64,30 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="12"><p>当前导出任务的状态：</p></v-col>
+      <v-col cols="12">
+        <p>
+          当前导出任务的状态：
+          <span v-if="status == 0" class="orange--text">没有节点在运行此导出任务</span>
+          <span v-if="status == 1" class="yellow--text">已提交，等待节点接受任务</span>
+          <span v-if="status == 2" class="green--text">节点正在运行</span>；<br>
+          用户请求停止任务？
+          <span v-if="reqStop == 0" class="orange--text">否</span>
+          <span v-if="reqStop == 1" class="red--text">是，正在等待节点停止运作</span>；<br>
+          当前或最后一次运行此任务的工作节点名称：<span class="green--text">{{ workerName }}</span>；<br>
+          当前或最后一次导出结果的下载地址或下载页面：<a class="green--text" v-bind:href="downloadAddress" target="=_blank">{{ downloadAddress }}</a>；<br>
+        </p>
+      </v-col>
     </v-row>
     <v-row>
       <v-col cols="12" class="do-not-select-text">
         <v-progress-linear v-model="inprocess" :value="inprocess" color="blue-grey" height="30px" bottom striped>
-          <strong>{{ parseInt(inprocess * 100) / 100 }} %</strong>
+          <strong>{{ parseInt(inprocess * 10000) / 100 }} %</strong>
         </v-progress-linear>
       </v-col>
     </v-row>
     <v-row>
       <v-col cols="6"><v-btn :disabled="isLoading" @click="commitExportJob()" color="primary" block>提交导出</v-btn></v-col>
-      <v-col cols="6"><v-btn :disabled="isLoading" color="red" block>终止导出</v-btn></v-col>
+      <v-col cols="6"><v-btn :disabled="isLoading" @click="cancelExportJob()" color="red" block>终止导出</v-btn></v-col>
     </v-row>
   </v-container>
 </template>
@@ -88,7 +100,6 @@
 
   @Component
   export default class TaskSettingExport extends TaskSettingBase {
-    public startPicker: boolean = false
     get startDate(): string {
       return this.$store.state.exportSetting.startDate;
     }
@@ -102,7 +113,6 @@
       });
     }
 
-    public startTimePicker: boolean = false
     get startTime(): string {
       return this.$store.state.exportSetting.startTime;
     }
@@ -116,7 +126,6 @@
       });
     }
 
-    public endPicker: boolean = false
     get endDate(): string {
       return this.$store.state.exportSetting.endDate;
     }
@@ -130,7 +139,6 @@
       });
     }
 
-    public endTimePicker: boolean = false
     get endTime(): string {
       return this.$store.state.exportSetting.endTime;
     }
@@ -157,8 +165,27 @@
       return this.$store.state.exportSetting.template;
     }
 
+    get workerName(): number {
+      return this.$store.state.exportInfo.workerName;
+    }
+    get downloadAddress(): number {
+      return this.$store.state.exportInfo.downloadAddress;
+    }
+    get status(): number {
+      return this.$store.state.exportInfo.status;
+    }
+    get reqStop(): number {
+      return this.$store.state.exportInfo.reqStop;
+    }
+    get inprocess(): number {
+      return this.$store.state.exportInfo.process;
+    }
+
+    public startPicker: boolean = false
+    public startTimePicker: boolean = false
+    public endPicker: boolean = false
+    public endTimePicker: boolean = false
     public testExportResult: string = ""
-    public inprocess: number = 0
 
     public exportTest(): void {
       this.isLoading = true;
@@ -185,7 +212,7 @@
       this.isLoading = true;
       axios.post(window.env.apiHost + "/pl/task-export-commit", {
         params: {
-          id: this.$store.state.taskSettingInfo.id,
+          id: parseInt("" + this.$store.state.taskSettingInfo.id),
           setting: this.$store.state.exportSetting
         }
       }).then((response: AxiosResponse): void => {
@@ -194,6 +221,26 @@
           this.$store.commit("showDialog", {message: response.data.message, title: "成功"});
         } else {
           this.$store.commit("showDialog", {message: response.data.message, title: "失败"});
+        }
+      }).catch((error: AxiosError): void => {
+        this.isLoading = false;
+        this.$store.commit("showDialog", {message: error.message, title: "请求错误"});
+      });
+    }
+
+    public cancelExportJob(): void {
+      this.isLoading = true;
+      axios.post(window.env.apiHost + "/pl/task-export-cancel", {
+        params: {
+          id: parseInt("" + this.$store.state.taskSettingInfo.id),
+        }
+      }).then((response: AxiosResponse): void => {
+        this.isLoading = false;
+        if (0 == response.data.code) {
+          this.$store.commit("showDialog", {message: "导出任务通过集群方式进行分发，由于节点同步信息需要一定的时间间隔，所以需要等待节点停止后才能重新提交任务。\n"
+            + "一般这个时间在1分钟以内。", title: "取消成功"});
+        } else {
+          this.$store.commit("showDialog", {message: response.data.message, title: "取消失败"});
         }
       }).catch((error: AxiosError): void => {
         this.isLoading = false;

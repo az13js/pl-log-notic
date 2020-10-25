@@ -115,6 +115,15 @@
                 for (let job of dataTable) {
                   if (job.id == exportJob.task_setting_id) {
                     job.process = parseInt(100 * exportJob.process + "") + "%";
+                    if (this.$store.state.taskSettingInfo.id && this.$store.state.taskSettingInfo.id == exportJob.task_setting_id) {
+                      this.$store.commit("setExportInfo", {
+                        workerName: exportJob.worker_name,
+                        downloadAddress: exportJob.download_addr,
+                        status: exportJob.status,
+                        reqStop: exportJob.req_stop,
+                        process: exportJob.process
+                      });
+                    }
                     break;
                   }
                 }

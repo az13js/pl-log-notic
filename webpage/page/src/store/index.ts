@@ -27,7 +27,14 @@ const opts = {
       endTime: "",
       template: ""
     },
-    init: false
+    exportInfo: {
+      workerName: "",
+      downloadAddress: "",
+      status: 0,
+      reqStop: 0,
+      process: 0
+    },
+    init: false,
   },
   mutations: {
     updateDesserts(state: any, playload: any): void {
@@ -73,6 +80,13 @@ const opts = {
     },
     initSuccess(state: any, playload: any): void {
       state.init = true;
+    },
+    setExportInfo(state: any, playload: any): void {
+      state.exportInfo.workerName = playload.workerName;
+      state.exportInfo.downloadAddress = playload.downloadAddress;
+      state.exportInfo.status = playload.status;
+      state.exportInfo.reqStop = playload.reqStop;
+      state.exportInfo.process = playload.process;
     }
   }
 };

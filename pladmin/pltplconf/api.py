@@ -259,6 +259,24 @@ def task_export_commit(request):
         result = response(-2, message="数据库查询异常")
     return result
 
+@require_http_methods(["POST"])
+@csrf_exempt
+def task_export_cancel(request):
+    """用户请求取消任务"""
+    try:
+        datas = json.loads(request.body.decode())
+        updateRows = PlExportJob.objects.filter(task_setting_id=datas["params"]["id"],status=1).update(status=0,req_stop=0)
+        if updateRows <= 0:
+            updateRows = PlExportJob.objects.filter(task_setting_id=datas["params"]["id"],status=2).update(req_stop=1)
+        if updateRows <= 0:
+            return response(-3, message="导出任务不存在或任务不是已提交/运行中状态，无法接受取消")
+        result = response()
+    except ObjectDoesNotExist:
+        result = response(-1, message="导出任务不存在或任务不是已提交/运行中状态，无法接受取消")
+    except DatabaseError:
+        result = response(-2, message="查询数据异常。")
+    return result
+
 @require_http_methods(["GET"])
 def export_job_info(request):
     """查询导出任务信息"""
@@ -308,6 +326,43 @@ def worker_recv_export_job(request):
         })
     except ObjectDoesNotExist:
         result = response(-1, message="数据库记录不存在")
+    except DatabaseError:
+        result = response(-2, message="查询数据异常。")
+    return result
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def worker_process(request):
+    """Worker进程向服务器同步处理进度消息"""
+    try:
+        datas = json.loads(request.body.decode())
+        exportJob = PlExportJob.objects.get(task_setting_id=datas["params"]["taskSettingId"],status=2)
+        if 1 == exportJob.req_stop:
+            return response(-101, message="用户请求停止任务，无需再同步进度")
+        exportJob.process = datas["params"]["process"]
+        exportJob.save()
+        result = response()
+    except ObjectDoesNotExist:
+        result = response(-1, message="导出任务不存在或任务不是运行中状态，无法接受同步")
+    except DatabaseError:
+        result = response(-2, message="查询数据异常。")
+    return result
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def worker_finish(request):
+    """Worker进程向服务器同步处理结果"""
+    try:
+        datas = json.loads(request.body.decode())
+        exportJob = PlExportJob.objects.get(task_setting_id=datas["params"]["taskSettingId"],status=2)
+        exportJob.status = 0
+        exportJob.req_stop = 0
+        exportJob.process = datas["params"]["process"]
+        exportJob.download_addr = datas["params"]["download_addr"]
+        exportJob.save()
+        result = response()
+    except ObjectDoesNotExist:
+        result = response(-1, message="导出任务不存在或任务不是运行中状态，无法接受同步")
     except DatabaseError:
         result = response(-2, message="查询数据异常。")
     return result
