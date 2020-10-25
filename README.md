@@ -73,19 +73,19 @@
 
 按照提示填写用户信息和密码就行了。
 
-## 一些辅助功能
+## 启动ES数据导出的节点
 
-### 命令行导出大量日志，从ES作为数据来源
+这个系统支持根据自定义的规则从ES中按照时间段导出全部数据。原理是采用Worker节点从Web服务中查询出导出的任务，领取后在节点上执行数据导出的工作。Worker可以运行多个，通过不同的Worker名称来区分。启动Worker需要按照下面的方式通过环境变量配置：
 
-使用的时候需要设置一些环境变量：
-
-    JOB_NAME  任务的名称，这个在web界面监控列表可以看到，这个JOB会作为查询方式和通配符配置
-    START     开始时间，例如：2020-10-20T00:00:00+08:00，字符串
-    END       结束时间，例如：2020-10-20T01:00:00+08:00，字符串
-    FLODER    文件夹，导出的数据存在里面
-    CACHETIME 游标缓存时间 1m 表示1分钟
+- `WORKER_NAME`节点名，必填，保证每个进程有不同的节点名
+- `HOST`通过HTTP访问时的主机名称，只通过IP就能访问的话可以随便写，此参数是必填的
+- `IP`WEB服务的IP地址，如果IP地址是可以动态改变的话，那么可以不设置此参数
+- `PORT`WEB服务端口，默认80，可以不填写
+- `CACHETIME`游标缓存时间，默认是1分钟，`1m`
 
 示例：
 
     $ cd pladmin
-    $ DEBUG=False JOB_NAME="测试任务" START="2020-10-21T00:00:00+08:00" END="2020-10-21T10:00:00+08:00" FLODER="/tmp/exports" CACHETIME="5m" python3 manage.py export_worker
+    $ WORKER_NAME=local-worker-01 HOST=pl-log-notic.az13js.cn IP=127.0.0.1 PORT=9210 CACHETIME=1m python3 manage.py export_worker
+
+该命令需要使用一些手段防止因为程序异常退出。在单机模式下，导出的文件会保存到`pladmin/pltplconf/static`文件夹，可以在页面上下载。在以多个Worker作为集群部署的时候，如果部署在不同的服务器上那么可能无法下载到导出的文件。这种情况下请参考`pladmin/export_floder_process_script.py`脚本编写一个上传到专门的文件服务的命令，然后修改配置文件里面的`EXPORT_FLODER_PROCESS_COMMAND`参数。Worker进程会在导出ES数据完成的时候，将数据所在的文件夹作为第一个参数传给`EXPORT_FLODER_PROCESS_COMMAND`配置的命令，然后把命令输出的内容作为下载的链接通过Web服务保存起来，然后在页面被用户看到。

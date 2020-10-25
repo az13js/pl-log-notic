@@ -135,7 +135,6 @@ class Command(BaseCommand):
         #    terminate_after=1000000,
         #    q=self.queryString(taskSettingDist["query_string"],startTime,endTime)
         #)
-        self._floder = "/tmp"
         total = None
         exportNum = 0
         i = 0

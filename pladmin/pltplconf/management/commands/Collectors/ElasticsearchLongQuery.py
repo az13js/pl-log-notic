@@ -36,7 +36,7 @@ class ElasticsearchLongQuery:
     def firstQuery(self):
         datas = json.loads(self._request.body.decode())
         """执行首次 ES 查询"""
-        return self._esObject.search(index=datas["params"]["query_type"], q=self.queryString(), ignore_unavailable=True, analyze_wildcard=True, size=1000, terminate_after=10, track_scores=False, scroll=self._cacheTime)
+        return self._esObject.search(index=datas["params"]["query_type"], q=self.queryString(), ignore_unavailable=True, analyze_wildcard=True, size=1000, terminate_after=1000000, track_scores=False, scroll=self._cacheTime)
 
     def nextQuery(self):
         """执行非首次 ES 查询"""
@@ -102,7 +102,7 @@ def getEsObject(request):
     return Elasticsearch(
         [{"host": ip, "port": port, "url_prefix": "elasticsearch"}],
         headers={"kbn-version":kbnVersion,"Host":datas["params"]["es_host"],"User-Agent":"Mozilla/5.0 Gecko/20100101 Firefox/68.0","Referer":"https://"+datas["params"]["es_host"]+"/app/kibana"},
-        timeout=30,
+        timeout=120,
         http_compress=compress,
         use_ssl=ssl,
         verify_certs=False,
