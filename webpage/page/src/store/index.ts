@@ -26,7 +26,8 @@ const opts = {
       endDate: "",
       endTime: "",
       template: ""
-    }
+    },
+    init: false
   },
   mutations: {
     updateDesserts(state: any, playload: any): void {
@@ -69,6 +70,9 @@ const opts = {
       state.exportSetting.endDate = playload.endDate;
       state.exportSetting.endTime = playload.endTime;
       state.exportSetting.template = playload.template;
+    },
+    initSuccess(state: any, playload: any): void {
+      state.init = true;
     }
   }
 };

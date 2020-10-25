@@ -61,3 +61,19 @@ class PlPushLog(models.Model):
 
     def __str__(self):
         return "JOBID=" + str(self.job_pri_key) + ",TIME=" + str(self.push_time)
+
+class PlExportJob(models.Model):
+    """导出ES数据任务"""
+
+    task_setting_id = models.IntegerField("PlTaskSetting主键", unique=True)
+    status = models.SmallIntegerField("状态(0无任务,1已提交,2运行中)", default=0)
+    run_time = models.DateTimeField("开始运行的时间")
+    req_stop = models.SmallIntegerField("请求停止任务？", default=0)
+    process = models.FloatField("进度", default=0.0)
+    worker_name = models.CharField("工作进程名称", max_length=50, default="")
+    download_addr = models.CharField("文件下载地址", max_length=150, default="")
+    task_setting_info = models.TextField("任务设置JSON", default="")
+    export_setting_info = models.TextField("导出设置JSON", default="")
+
+    def __str__(self):
+        return "关联task_setting_id=" + str(self.task_setting_id) + ",状态=" + str(self.status)

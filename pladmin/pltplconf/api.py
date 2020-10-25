@@ -14,7 +14,7 @@ from django.core import serializers
 from django.forms.models import model_to_dict
 from elasticsearch import Elasticsearch
 from string import Template
-from pltplconf.models import Pljob, PlTaskSetting
+from pltplconf.models import Pljob, PlTaskSetting, PlExportJob
 from pltplconf.management.commands.export_worker import FakeRequest
 from pltplconf.management.commands.Parsers.TaskParser import TaskParser
 
@@ -203,6 +203,8 @@ def task_test_send_template(request):
         "sendResult": requests.post(url = address, headers = {"Content-Type": "text/plain"}, json = data).content.decode()
     })
 
+######################## 导出大量数据 ########################
+
 @require_http_methods(["POST"])
 @csrf_exempt
 def task_export_test(request):
@@ -220,6 +222,94 @@ def task_export_test(request):
         result = response(-1, message="任务不存在，可能已经被删除。")
     except DatabaseError:
         result = response(-2, message="数据库查询异常")
+    return result
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def task_export_commit(request):
+    """提交导出任务"""
+    try:
+        datas = json.loads(request.body.decode())
+        taskSetting = PlTaskSetting.objects.get(id=datas["params"]["id"])
+        try:
+            exportJob = PlExportJob.objects.get(task_setting_id=taskSetting.id)
+        except ObjectDoesNotExist:
+            exportJob = PlExportJob(task_setting_id=taskSetting.id, run_time=timezone.now() - timedelta(weeks=100))
+            exportJob.save() # 先保存一遍，保证数据库中一定存在，因为下面要使用update语句更新符合条件的这个任务，防止并发问题
+        if 0 != exportJob.status:
+            return response(-3, message="已经有导出任务提交，请先终止")
+
+        # 执行更新，使用更新带条件操作是为了防止并发
+        updateRows = PlExportJob.objects.filter(task_setting_id=taskSetting.id, status=0).update(
+            status = 1,
+            req_stop = 0,
+            process = 0,
+            worker_name = "",
+            download_addr = "",
+            task_setting_info = json.dumps(model_to_dict(taskSetting)),
+            export_setting_info = json.dumps(datas["params"]["setting"])
+        )
+        if updateRows <= 0:
+            return response(-4, message="更新失败")
+
+        result = response()
+    except ObjectDoesNotExist:
+        result = response(-1, message="监控任务不存在，可能已经被删除。")
+    except DatabaseError:
+        result = response(-2, message="数据库查询异常")
+    return result
+
+@require_http_methods(["GET"])
+def export_job_info(request):
+    """查询导出任务信息"""
+    try:
+        if "id" in request.GET:
+            exportJob = PlExportJob.objects.get(task_setting_id=int(request.GET["id"]))
+            result = response(0, data={"exportJob": model_to_dict(exportJob)})
+        else:
+            exportJobs = []
+            for exportJob in PlExportJob.objects.filter(task_setting_id__in=[i for i in map(lambda x:int(x), request.GET["ids"].split(','))]):
+                exportJobs.append(model_to_dict(exportJob))
+            result = response(0, data={"exportJobs": exportJobs})
+
+    except ObjectDoesNotExist:
+        result = response(-1, message="导出任务不存在。")
+    except DatabaseError:
+        result = response(-2, message="查询数据异常。")
+    return result
+
+@require_http_methods(["GET"])
+def export_commit_jobs(request):
+    """查询已提交导出任务"""
+    ids = []
+    for job in PlExportJob.objects.filter(status=1, req_stop=0):
+        ids.append(job.task_setting_id)
+    return response(0, data={"taskSettingIds": ids})
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def worker_recv_export_job(request):
+    """Worker进程（集群节点）请求接受给定ID（taskSettingId）的导出任务"""
+    try:
+        datas = json.loads(request.body.decode())
+        taskSettingId = int(datas["params"]["taskSettingId"])
+        # Worker进程可以有多个，为了防止并发请求导致job更新不及时被两个Worker消费，这里需要这样处理
+        updateRows = PlExportJob.objects.filter(task_setting_id=taskSettingId,status=1,req_stop=0).update(
+            status = 2, # 更改为运行中
+            worker_name = datas["params"]["workerName"],
+            run_time = timezone.now()
+        )
+        if updateRows <= 0:
+            return response(-3, message="符合领取条件的数据库记录不存在，或取消，或已被领取")
+
+        # 返回导出任务的信息，Worker需要根据这些信息运作
+        result = response(0, data={
+            "exportJob": model_to_dict(PlExportJob.objects.get(task_setting_id=taskSettingId))
+        })
+    except ObjectDoesNotExist:
+        result = response(-1, message="数据库记录不存在")
+    except DatabaseError:
+        result = response(-2, message="查询数据异常。")
     return result
 
 ######################## TODO 下面需要支持流量检测然后报警推送 ########################

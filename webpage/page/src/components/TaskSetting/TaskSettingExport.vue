@@ -74,7 +74,7 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="6"><v-btn :disabled="isLoading" color="primary" block>提交导出</v-btn></v-col>
+      <v-col cols="6"><v-btn :disabled="isLoading" @click="commitExportJob()" color="primary" block>提交导出</v-btn></v-col>
       <v-col cols="6"><v-btn :disabled="isLoading" color="red" block>终止导出</v-btn></v-col>
     </v-row>
   </v-container>
@@ -172,6 +172,26 @@
         if (0 == response.data.code) {
           // SUCCESS
           this.testExportResult = response.data.data.result;
+        } else {
+          this.$store.commit("showDialog", {message: response.data.message, title: "失败"});
+        }
+      }).catch((error: AxiosError): void => {
+        this.isLoading = false;
+        this.$store.commit("showDialog", {message: error.message, title: "请求错误"});
+      });
+    }
+
+    public commitExportJob(): void {
+      this.isLoading = true;
+      axios.post(window.env.apiHost + "/pl/task-export-commit", {
+        params: {
+          id: this.$store.state.taskSettingInfo.id,
+          setting: this.$store.state.exportSetting
+        }
+      }).then((response: AxiosResponse): void => {
+        this.isLoading = false;
+        if (0 == response.data.code) {
+          this.$store.commit("showDialog", {message: response.data.message, title: "成功"});
         } else {
           this.$store.commit("showDialog", {message: response.data.message, title: "失败"});
         }
