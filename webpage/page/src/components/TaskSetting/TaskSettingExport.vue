@@ -81,7 +81,7 @@
     <v-row>
       <v-col cols="12" class="do-not-select-text">
         <v-progress-linear v-model="inprocess" :value="inprocess" color="blue-grey" height="30px" bottom striped>
-          <strong>{{ parseInt(inprocess * 10000) / 100 }} %</strong>
+          <strong>{{ parseInt(inprocess * 100) / 100 }} %</strong>
         </v-progress-linear>
       </v-col>
     </v-row>
@@ -178,7 +178,7 @@
       return this.$store.state.exportInfo.reqStop;
     }
     get inprocess(): number {
-      return this.$store.state.exportInfo.process;
+      return this.$store.state.exportInfo.process * 100;
     }
 
     public startPicker: boolean = false

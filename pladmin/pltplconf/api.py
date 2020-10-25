@@ -14,8 +14,8 @@ from django.core import serializers
 from django.forms.models import model_to_dict
 from elasticsearch import Elasticsearch
 from string import Template
+from pltplconf.management.commands.Collectors.ElasticsearchLongQuery import getEsObject, getTimeformate, FakeRequest
 from pltplconf.models import Pljob, PlTaskSetting, PlExportJob
-from pltplconf.management.commands.export_worker import FakeRequest
 from pltplconf.management.commands.Parsers.TaskParser import TaskParser
 
 ######################## 支持异常检测然后报警推送 ########################
@@ -358,7 +358,7 @@ def worker_finish(request):
         exportJob.status = 0
         exportJob.req_stop = 0
         exportJob.process = datas["params"]["process"]
-        exportJob.download_addr = datas["params"]["download_addr"]
+        exportJob.download_addr = datas["params"]["downloadAddress"]
         exportJob.save()
         result = response()
     except ObjectDoesNotExist:
@@ -370,44 +370,6 @@ def worker_finish(request):
 ######################## TODO 下面需要支持流量检测然后报警推送 ########################
 
 ######################## 共用函数 ########################
-
-def getEsObject(request):
-    """根据配置信息，返回一个ES对象"""
-    datas = json.loads(request.body.decode())
-    port = 80
-    ssl = False
-    if "https" == datas["params"]["es_sechma"]:
-        port = 443
-        ssl = True
-    ip = datas["params"]["es_ip"]
-    if "" == datas["params"]["es_ip"] or datas["params"]["es_ip"] is None:
-        ip = datas["params"]["es_host"]
-    compress = False
-    if 1 == datas["params"]["compress"]:
-        compress = True
-    auth = ""
-    authUser = datas["params"]["auth_user"]
-    if datas["params"]["auth_user"] is None:
-        authUser = ""
-    authPwd = datas["params"]["auth_pwd"]
-    if datas["params"]["auth_pwd"] is None:
-        authPwd = ""
-    if "" != authPwd or "" != authPwd:
-        auth = authUser + ":" + authPwd
-    kbnVersion = ""
-    if "kbn_version" in datas["params"]:
-        kbnVersion = datas["params"]["kbn_version"]
-    if kbnVersion is None:
-        kbnVersion = ""
-    return Elasticsearch(
-        [{"host": ip, "port": port, "url_prefix": "elasticsearch"}],
-        headers={"kbn-version":kbnVersion,"Host":datas["params"]["es_host"],"User-Agent":"Mozilla/5.0 Gecko/20100101 Firefox/68.0","Referer":"https://"+datas["params"]["es_host"]+"/app/kibana"},
-        timeout=30,
-        http_compress=compress,
-        use_ssl=ssl,
-        verify_certs=False,
-        http_auth=auth
-    )
 
 def doQuery(esObject, queryType, queryString, gte, endTime = None):
     """
@@ -430,15 +392,6 @@ def doQuery(esObject, queryType, queryString, gte, endTime = None):
     else:
         realQueryString = realQueryString + " AND (@timestamp:" + queryTime + " OR timestamp:" + queryTime + ")"
     return json.dumps(esObject.search(index=queryType, q=realQueryString, ignore_unavailable=True, analyze_wildcard=True, size=100, track_scores=False, terminate_after=100))
-
-def getTimeformate(dateTime):
-    year = '%(value)04d'%{'value':dateTime.year}
-    month = '%(value)02d'%{'value':dateTime.month}
-    day = '%(value)02d'%{'value':dateTime.day}
-    hour = '%(value)02d'%{'value':dateTime.hour}
-    minute = '%(value)02d'%{'value':dateTime.minute}
-    second = '%(value)02d'%{'value':dateTime.second}
-    return year + "-" + month + "-" + day + "T" + hour + ":" + minute + ":" + second + "+0800"
 
 def response(code=0, data={}, message=""):
     """统一返回格式"""

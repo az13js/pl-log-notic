@@ -20,6 +20,19 @@ class TaskParser():
         else:
             return TemplateParser(placeholders, queryLog).parse(template)
 
+    def parseDist(self, taskSetting, queryLog, template = None):
+        if "" != taskSetting["placeholders"]:
+            placeholdersData = json.loads(taskSetting["placeholders"])
+        else:
+            placeholdersData = []
+        placeholders = []
+        for data in placeholdersData:
+            placeholders.append(Placeholder(data["placeholder"], data["start"], data["end"]))
+        if template is None:
+            return TemplateParser(placeholders, queryLog).parse(taskSetting["template"])
+        else:
+            return TemplateParser(placeholders, queryLog).parse(template)
+
 class TemplateParser():
     """模板解析，这个的逻辑跟前端页面typescript的逻辑一致"""
     def __init__(self, placeholders, sourceText):
