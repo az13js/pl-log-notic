@@ -16,5 +16,13 @@ urlpatterns = [
     path('pl/task-test-es-link', api.task_test_es_link, name='task-test-es-link'), # 测试ES服务器连接
     path('pl/task-test-wxbot-address', api.task_test_wxbot_address, name='task-test-wxbot-address'), # 测试微信机器人地址
     path('pl/task-test-es-query', api.task_test_es_query, name='task-test-es-query'), # 测试 ES 查询方式
-    path('pl/task-test-send-template', api.task_test_send_template, name='task-test-send-template') # 测试发送模板
+    path('pl/task-test-send-template', api.task_test_send_template, name='task-test-send-template'), # 测试发送模板
+    path('pl/task-export-test', api.task_export_test, name='task-export-test'), # 测试导出结果
+    path('pl/task-export-commit', api.task_export_commit, name='task-export-commit'), # 提交导出任务
+    path('pl/task-export-cancel', api.task_export_cancel, name='task-export-cancel'), # 取消导出任务
+    path('pl/export-job-info', api.export_job_info, name='export-job-info'), # 查询导出任务信息
+    path('pl/communicate/export-commit-jobs', api.export_commit_jobs, name='export-commit-jobs'), # 查询已提交导出任务信息
+    path('pl/communicate/worker-recv-export-job', api.worker_recv_export_job, name='worker-recv-export-job'), # Worker接收指定ID的导出任务
+    path('pl/communicate/worker-process', api.worker_process, name='worker-process'), # Worker向服务器同步任务状态
+    path('pl/communicate/worker-finish', api.worker_finish, name='worker-finish') # Worker向服务器同步任务执行结果
 ]

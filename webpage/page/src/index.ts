@@ -13,6 +13,7 @@ import TaskSettingBot from "./components/TaskSetting/TaskSettingBot.vue";
 import TaskSettingTemplate from "./components/TaskSetting/TaskSettingTemplate.vue";
 import TaskSettingPlaceholder from "./components/TaskSetting/TaskSettingPlaceholder.vue";
 import TaskSettingFrequency from "./components/TaskSetting/TaskSettingFrequency.vue";
+import TaskSettingExport from "./components/TaskSetting/TaskSettingExport.vue";
 
 Vue.prototype.$axios = axios;
 Vue.use(VueRouter);
@@ -25,7 +26,8 @@ const routes: RouteConfig[] = [
     { name: "TaskSettingBot", path: "/TaskSettingBot", component: TaskSettingBot },
     { name: "TaskSettingTemplate", path: "/TaskSettingTemplate", component: TaskSettingTemplate },
     { name: "TaskSettingPlaceholder", path: "/TaskSettingPlaceholder", component: TaskSettingPlaceholder },
-    { name: "TaskSettingFrequency", path: "/TaskSettingFrequency", component: TaskSettingFrequency }
+    { name: "TaskSettingFrequency", path: "/TaskSettingFrequency", component: TaskSettingFrequency },
+    { name: "TaskSettingExport", path: "/TaskSettingExport", component: TaskSettingExport }
   ] }
 ];
 

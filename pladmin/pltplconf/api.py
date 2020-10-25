@@ -14,7 +14,9 @@ from django.core import serializers
 from django.forms.models import model_to_dict
 from elasticsearch import Elasticsearch
 from string import Template
-from pltplconf.models import Pljob, PlTaskSetting
+from pltplconf.management.commands.Collectors.ElasticsearchLongQuery import getEsObject, getTimeformate, FakeRequest
+from pltplconf.models import Pljob, PlTaskSetting, PlExportJob
+from pltplconf.management.commands.Parsers.TaskParser import TaskParser
 
 ######################## 支持异常检测然后报警推送 ########################
 
@@ -181,7 +183,7 @@ def task_test_wxbot_address(request):
 def task_test_es_query(request):
     """保存任务配置"""
     datas = json.loads(request.body.decode())
-    searchResult = doQuery(getEsObject(request), datas["params"]["query_type"], datas["params"]["query_string"], datetime.now(timezone.utc) - timedelta(days=1))
+    searchResult = doQuery(getEsObject(request), datas["params"]["query_type"], datas["params"]["query_string"], datetime.now() - timedelta(days=1))
     return response(0, data={"esQueryResult": searchResult.encode("utf-8").decode("unicode_escape")})
     #return response(0, data={"esQueryResult": searchResult})
 
@@ -201,67 +203,195 @@ def task_test_send_template(request):
         "sendResult": requests.post(url = address, headers = {"Content-Type": "text/plain"}, json = data).content.decode()
     })
 
+######################## 导出大量数据 ########################
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def task_export_test(request):
+    """测试导出"""
+    try:
+        datas = json.loads(request.body.decode())
+        taskSetting = PlTaskSetting.objects.get(id=datas["params"]["id"])
+        es = getEsObject(FakeRequest(taskSetting))
+        startTime = datetime.strptime(datas["params"]["setting"]["startDate"] + " " + datas["params"]["setting"]["startTime"], "%Y-%m-%d %H:%M:%S")
+        endTime = datetime.strptime(datas["params"]["setting"]["endDate"] + " " + datas["params"]["setting"]["endTime"], "%Y-%m-%d %H:%M:%S")
+        queryResult = doQuery(es, taskSetting.query_type, taskSetting.query_string, startTime, endTime)
+        message = TaskParser().parse(taskSetting, queryResult.encode("utf-8").decode("unicode_escape"), datas["params"]["setting"]["template"])
+        result = response(0, data={"result": message})
+    except ObjectDoesNotExist:
+        result = response(-1, message="任务不存在，可能已经被删除。")
+    except DatabaseError:
+        result = response(-2, message="数据库查询异常")
+    return result
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def task_export_commit(request):
+    """提交导出任务"""
+    try:
+        datas = json.loads(request.body.decode())
+        taskSetting = PlTaskSetting.objects.get(id=datas["params"]["id"])
+        try:
+            exportJob = PlExportJob.objects.get(task_setting_id=taskSetting.id)
+        except ObjectDoesNotExist:
+            exportJob = PlExportJob(task_setting_id=taskSetting.id, run_time=timezone.now() - timedelta(weeks=100))
+            exportJob.save() # 先保存一遍，保证数据库中一定存在，因为下面要使用update语句更新符合条件的这个任务，防止并发问题
+        if 0 != exportJob.status:
+            return response(-3, message="已经有导出任务提交，请先终止")
+
+        # 执行更新，使用更新带条件操作是为了防止并发
+        updateRows = PlExportJob.objects.filter(task_setting_id=taskSetting.id, status=0).update(
+            status = 1,
+            req_stop = 0,
+            process = 0,
+            worker_name = "",
+            download_addr = "",
+            task_setting_info = json.dumps(model_to_dict(taskSetting)),
+            export_setting_info = json.dumps(datas["params"]["setting"])
+        )
+        if updateRows <= 0:
+            return response(-4, message="更新失败")
+
+        result = response()
+    except ObjectDoesNotExist:
+        result = response(-1, message="监控任务不存在，可能已经被删除。")
+    except DatabaseError:
+        result = response(-2, message="数据库查询异常")
+    return result
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def task_export_cancel(request):
+    """用户请求取消任务"""
+    try:
+        datas = json.loads(request.body.decode())
+        updateRows = PlExportJob.objects.filter(task_setting_id=datas["params"]["id"],status=1).update(status=0,req_stop=0)
+        if updateRows <= 0:
+            updateRows = PlExportJob.objects.filter(task_setting_id=datas["params"]["id"],status=2).update(req_stop=1)
+        if updateRows <= 0:
+            return response(-3, message="导出任务不存在或任务不是已提交/运行中状态，无法接受取消")
+        result = response()
+    except ObjectDoesNotExist:
+        result = response(-1, message="导出任务不存在或任务不是已提交/运行中状态，无法接受取消")
+    except DatabaseError:
+        result = response(-2, message="查询数据异常。")
+    return result
+
+@require_http_methods(["GET"])
+def export_job_info(request):
+    """查询导出任务信息"""
+    try:
+        if "id" in request.GET:
+            exportJob = PlExportJob.objects.get(task_setting_id=int(request.GET["id"]))
+            result = response(0, data={"exportJob": model_to_dict(exportJob)})
+        else:
+            exportJobs = []
+            for exportJob in PlExportJob.objects.filter(task_setting_id__in=[i for i in map(lambda x:int(x), request.GET["ids"].split(','))]):
+                exportJobs.append(model_to_dict(exportJob))
+            result = response(0, data={"exportJobs": exportJobs})
+
+    except ObjectDoesNotExist:
+        result = response(-1, message="导出任务不存在。")
+    except DatabaseError:
+        result = response(-2, message="查询数据异常。")
+    return result
+
+@require_http_methods(["GET"])
+def export_commit_jobs(request):
+    """查询已提交导出任务"""
+    ids = []
+    for job in PlExportJob.objects.filter(status=1, req_stop=0):
+        ids.append(job.task_setting_id)
+    return response(0, data={"taskSettingIds": ids})
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def worker_recv_export_job(request):
+    """Worker进程（集群节点）请求接受给定ID（taskSettingId）的导出任务"""
+    try:
+        datas = json.loads(request.body.decode())
+        taskSettingId = int(datas["params"]["taskSettingId"])
+        # Worker进程可以有多个，为了防止并发请求导致job更新不及时被两个Worker消费，这里需要这样处理
+        updateRows = PlExportJob.objects.filter(task_setting_id=taskSettingId,status=1,req_stop=0).update(
+            status = 2, # 更改为运行中
+            worker_name = datas["params"]["workerName"],
+            run_time = timezone.now()
+        )
+        if updateRows <= 0:
+            return response(-3, message="符合领取条件的数据库记录不存在，或取消，或已被领取")
+
+        # 返回导出任务的信息，Worker需要根据这些信息运作
+        result = response(0, data={
+            "exportJob": model_to_dict(PlExportJob.objects.get(task_setting_id=taskSettingId))
+        })
+    except ObjectDoesNotExist:
+        result = response(-1, message="数据库记录不存在")
+    except DatabaseError:
+        result = response(-2, message="查询数据异常。")
+    return result
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def worker_process(request):
+    """Worker进程向服务器同步处理进度消息"""
+    try:
+        datas = json.loads(request.body.decode())
+        exportJob = PlExportJob.objects.get(task_setting_id=datas["params"]["taskSettingId"],status=2)
+        if 1 == exportJob.req_stop:
+            return response(-101, message="用户请求停止任务，无需再同步进度")
+        exportJob.process = datas["params"]["process"]
+        exportJob.save()
+        result = response()
+    except ObjectDoesNotExist:
+        result = response(-1, message="导出任务不存在或任务不是运行中状态，无法接受同步")
+    except DatabaseError:
+        result = response(-2, message="查询数据异常。")
+    return result
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def worker_finish(request):
+    """Worker进程向服务器同步处理结果"""
+    try:
+        datas = json.loads(request.body.decode())
+        exportJob = PlExportJob.objects.get(task_setting_id=datas["params"]["taskSettingId"],status=2)
+        exportJob.status = 0
+        exportJob.req_stop = 0
+        exportJob.process = datas["params"]["process"]
+        exportJob.download_addr = datas["params"]["downloadAddress"]
+        exportJob.save()
+        result = response()
+    except ObjectDoesNotExist:
+        result = response(-1, message="导出任务不存在或任务不是运行中状态，无法接受同步")
+    except DatabaseError:
+        result = response(-2, message="查询数据异常。")
+    return result
+
 ######################## TODO 下面需要支持流量检测然后报警推送 ########################
 
 ######################## 共用函数 ########################
 
-def getEsObject(request):
-    """根据配置信息，返回一个ES对象"""
-    datas = json.loads(request.body.decode())
-    port = 80
-    ssl = False
-    if "https" == datas["params"]["es_sechma"]:
-        port = 443
-        ssl = True
-    ip = datas["params"]["es_ip"]
-    if "" == datas["params"]["es_ip"] or datas["params"]["es_ip"] is None:
-        ip = datas["params"]["es_host"]
-    compress = False
-    if 1 == datas["params"]["compress"]:
-        compress = True
-    auth = ""
-    authUser = datas["params"]["auth_user"]
-    if datas["params"]["auth_user"] is None:
-        authUser = ""
-    authPwd = datas["params"]["auth_pwd"]
-    if datas["params"]["auth_pwd"] is None:
-        authPwd = ""
-    if "" != authPwd or "" != authPwd:
-        auth = authUser + ":" + authPwd
-    kbnVersion = ""
-    if "kbn_version" in datas["params"]:
-        kbnVersion = datas["params"]["kbn_version"]
-    if kbnVersion is None:
-        kbnVersion = ""
-    return Elasticsearch(
-        [{"host": ip, "port": port, "url_prefix": "elasticsearch"}],
-        headers={"kbn-version":kbnVersion,"Host":datas["params"]["es_host"],"User-Agent":"Mozilla/5.0 Gecko/20100101 Firefox/68.0","Referer":"https://"+datas["params"]["es_host"]+"/app/kibana"},
-        timeout=30,
-        http_compress=compress,
-        use_ssl=ssl,
-        verify_certs=False,
-        http_auth=auth
-    )
-
-def doQuery(esObject, queryType, queryString, gte):
-    """执行 ES 查询"""
+def doQuery(esObject, queryType, queryString, gte, endTime = None):
+    """
+        执行 ES 查询
+    参数：
+        esObject: ES对象
+        queryType: 查询的index
+        queryString: 查询的语句
+        gte: 一个datetime对象，查询的开始时间
+        endTime: 默认是 None，可以传一个结束时间，datetime对象
+    返回值：字符串
+    """
     realQueryString = queryString
-    queryTime = "[" + getTimeformate(gte) + " TO " + getTimeformate(datetime.now(timezone.utc)) + "]"
+    if endTime is None:
+        queryTime = "[" + getTimeformate(gte) + " TO " + getTimeformate(datetime.now()) + "]"
+    else:
+        queryTime = "[" + getTimeformate(gte) + " TO " + getTimeformate(endTime) + "]"
     if "" == realQueryString or realQueryString is None:
         realQueryString = "@timestamp:" + queryTime + " OR timestamp:" + queryTime
     else:
         realQueryString = realQueryString + " AND (@timestamp:" + queryTime + " OR timestamp:" + queryTime + ")"
     return json.dumps(esObject.search(index=queryType, q=realQueryString, ignore_unavailable=True, analyze_wildcard=True, size=100, track_scores=False, terminate_after=100))
-
-def getTimeformate(dateTime):
-    #dateTime = datetime.now(timezone.utc)
-    year = '%(value)04d'%{'value':dateTime.year}
-    month = '%(value)02d'%{'value':dateTime.month}
-    day = '%(value)02d'%{'value':dateTime.day}
-    hour = '%(value)02d'%{'value':dateTime.hour}
-    minute = '%(value)02d'%{'value':dateTime.minute}
-    second = '%(value)02d'%{'value':dateTime.second}
-    return year + "-" + month + "-" + day + "T" + hour + ":" + minute + ":" + second + "Z"
 
 def response(code=0, data={}, message=""):
     """统一返回格式"""

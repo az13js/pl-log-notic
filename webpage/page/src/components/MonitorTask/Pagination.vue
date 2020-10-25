@@ -34,7 +34,11 @@
       axios.get(host + "/pl/task-list", {
         params: this.$store.state.queryColumns
       }).then((response: AxiosResponse): void => {
-        this.$store.commit("updateDesserts", {desserts: response.data.data.list});
+        let dataTable: any = JSON.parse(JSON.stringify(response.data.data.list));
+        for (let job of dataTable) {
+          job.process = "";
+        }
+        this.$store.commit("updateDesserts", {desserts: dataTable});
         this.$store.commit("loadStatus", {isLoading: false});
       });
     }

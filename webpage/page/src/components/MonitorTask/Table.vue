@@ -63,6 +63,7 @@
       {text: '配置', value: 'actions'},
       {text: '开/关', value: 'enable'},
       {text: "任务名称", value: "name"},
+      {text: "导出进度", value: "process"},
       {text: '删除', value: 'delete'}
     ]
 
@@ -86,9 +87,52 @@
       axios.get(host + "/pl/task-list", {
         params: this.$store.state.queryColumns
       }).then((response: AxiosResponse): void => {
-        this.$store.commit("updateDesserts", {desserts: response.data.data.list});
+        let dataTable: any = JSON.parse(JSON.stringify(response.data.data.list));
+        for (let job of dataTable) {
+          job.process = "";
+        }
+        this.$store.commit("updateDesserts", {desserts: dataTable});
         this.$store.commit("loadStatus", {isLoading: false});
       });
+      if (!this.$store.state.init) {
+        this.$store.commit("initSuccess", {});
+        // 每间隔2秒钟自动更新当前表格显示的JOB的状态
+        setInterval((): void => {
+          let ids: number[] = [];
+          for (let task of this.$store.state.desserts) {
+            ids.push(task.id);
+          }
+          if (ids.length <= 0) {
+            return;
+          }
+          let host: string = window.env.apiHost;
+          axios.get(host + "/pl/export-job-info", {
+            params: {ids:ids.join(",")}
+          }).then((response: AxiosResponse): void => {
+            if (response.data.code == 0) {
+              let dataTable: any = JSON.parse(JSON.stringify(this.$store.state.desserts));
+              for (let exportJob of response.data.data.exportJobs) {
+                for (let job of dataTable) {
+                  if (job.id == exportJob.task_setting_id) {
+                    job.process = parseInt(100 * exportJob.process + "") + "%";
+                    if (this.$store.state.taskSettingInfo.id && this.$store.state.taskSettingInfo.id == exportJob.task_setting_id) {
+                      this.$store.commit("setExportInfo", {
+                        workerName: exportJob.worker_name,
+                        downloadAddress: exportJob.download_addr,
+                        status: exportJob.status,
+                        reqStop: exportJob.req_stop,
+                        process: exportJob.process
+                      });
+                    }
+                    break;
+                  }
+                }
+              }
+              this.$store.commit("updateDesserts", {desserts: dataTable});
+            }
+          });
+        }, 2000);
+      }
     }
 
     /**

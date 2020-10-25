@@ -147,6 +147,11 @@ PL_PIPLINES = [
     'pltplconf.management.commands.Piplines.Task'
 ]
 
+# 后台导出文件的临时目录
+EXPORT_TMP_FLODER="/tmp"
+# 导出文件处理脚本
+EXPORT_FLODER_PROCESS_COMMAND="python3 export_floder_process_script.py"
+
 # es地址
 ES_ADDRESS = {
     'ip': '127.0.0.1',

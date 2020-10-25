@@ -11,6 +11,7 @@ import logging
 from datetime import timedelta, datetime, timezone
 from pltplconf import api
 from django.forms.models import model_to_dict
+from pltplconf.management.commands.Collectors.ElasticsearchLongQuery import getEsObject, FakeRequest
 
 logger = logging.getLogger(__name__)
 
@@ -18,13 +19,8 @@ class TaskAnalysis():
     def findLogs(self, job):
         logger.debug("查询命令是：" + job.task_setting.query_string)
         return api.doQuery(
-            api.getEsObject(FakeRequest(job.task_setting)),
+            getEsObject(FakeRequest(job.task_setting)),
             job.task_setting.query_type,
             job.task_setting.query_string,
             datetime.now(timezone.utc) - timedelta(seconds=job.delay_sec)
         )
-
-# 模拟request的属性
-class FakeRequest():
-    def __init__(self, taskSetting):
-        self.body = json.dumps({"params": model_to_dict(taskSetting)}).encode()

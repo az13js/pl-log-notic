@@ -6,7 +6,7 @@ import json
 logger = logging.getLogger(__name__)
 
 class TaskParser():
-    def parse(self, taskSetting, queryLog):
+    def parse(self, taskSetting, queryLog, template = None):
         logger.debug("任务名：" + str(taskSetting.task_name) + "，占位符配置：\n" + taskSetting.placeholders)
         if "" != taskSetting.placeholders:
             placeholdersData = json.loads(taskSetting.placeholders)
@@ -15,7 +15,23 @@ class TaskParser():
         placeholders = []
         for data in placeholdersData:
             placeholders.append(Placeholder(data["placeholder"], data["start"], data["end"]))
-        return TemplateParser(placeholders, queryLog).parse(taskSetting.template)
+        if template is None:
+            return TemplateParser(placeholders, queryLog).parse(taskSetting.template)
+        else:
+            return TemplateParser(placeholders, queryLog).parse(template)
+
+    def parseDist(self, taskSetting, queryLog, template = None):
+        if "" != taskSetting["placeholders"]:
+            placeholdersData = json.loads(taskSetting["placeholders"])
+        else:
+            placeholdersData = []
+        placeholders = []
+        for data in placeholdersData:
+            placeholders.append(Placeholder(data["placeholder"], data["start"], data["end"]))
+        if template is None:
+            return TemplateParser(placeholders, queryLog).parse(taskSetting["template"])
+        else:
+            return TemplateParser(placeholders, queryLog).parse(template)
 
 class TemplateParser():
     """模板解析，这个的逻辑跟前端页面typescript的逻辑一致"""
