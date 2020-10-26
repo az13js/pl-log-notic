@@ -55,19 +55,31 @@ class Command(BaseCommand):
         if "CACHETIME" in os.environ:
             cacheTime = os.environ["CACHETIME"]
 
+        authUser = ""
+        if "USER" in in os.environ:
+            authUser = os.environ["USER"]
+
+        password = ""
+        if "PASSWORD" in in os.environ:
+            password = os.environ["PASSWORD"]
+
         self.stdout.write(self.style.SUCCESS(
             "启动参数：\n"
             + "WORKER_NAME=" + workerName + "\n"
             + "HOST=" + host + "\n"
             + "IP=" + ip + "\n"
             + "PORT=" + port + "\n"
-            + "CACHETIME=" + cacheTime
+            + "CACHETIME=" + cacheTime + "\n"
+            + "USER=" + authUser + "\n"
+            + "PASSWORD=" + password
         ))
         self._workerName = workerName
         self._host = host
         self._ip = ip
         self._port = port
         self._cacheTime = cacheTime
+        self._authUser = authUser
+        self._password = password
 
         # 循环查询可执行任务列表，并执行
         while True:
@@ -96,7 +108,7 @@ class Command(BaseCommand):
     def getListIds(self):
         """查询等待被导出的任务"""
         baseAddress = "http://" + self._ip + ":" + self._port
-        result = requests.get(baseAddress + "/pl/communicate/export-commit-jobs", headers={"host": self._host})
+        result = requests.get(baseAddress + "/pl/communicate/export-commit-jobs", headers={"host": self._host}, auth=(self._authUser,self._password))
         try:
             data = result.json()
         except ValueError:
@@ -111,7 +123,8 @@ class Command(BaseCommand):
         result = requests.post(
             url=baseAddress + "/pl/communicate/worker-recv-export-job",
             json={"params":{"taskSettingId":int(id),"workerName":self._workerName}},
-            headers={"host": self._host}
+            headers={"host": self._host},
+            auth=(self._authUser,self._password)
         )
         try:
             data = result.json()
@@ -172,7 +185,8 @@ class Command(BaseCommand):
         result = requests.post(
             url=baseAddress + "/pl/communicate/worker-process",
             json={"params":{"taskSettingId":int(id),"process":process}},
-            headers={"host": self._host}
+            headers={"host": self._host},
+            auth=(self._authUser,self._password)
         )
         try:
             data = result.json()
@@ -187,7 +201,8 @@ class Command(BaseCommand):
         requests.post(
             url=baseAddress + "/pl/communicate/worker-finish",
             json={"params":{"taskSettingId":int(id),"process":1,"downloadAddress":downloadUrl}},
-            headers={"host": self._host}
+            headers={"host": self._host},
+            auth=(self._authUser,self._password)
         )
 
     def sendCancelSuccess(self, id):
@@ -195,7 +210,8 @@ class Command(BaseCommand):
         requests.post(
             url=baseAddress + "/pl/communicate/worker-finish",
             json={"params":{"taskSettingId":int(id),"process":0,"downloadAddress":""}},
-            headers={"host": self._host}
+            headers={"host": self._host},
+            auth=(self._authUser,self._password)
         )
 
     def prepareFloder(self):
