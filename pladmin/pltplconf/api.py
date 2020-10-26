@@ -278,6 +278,23 @@ def task_export_cancel(request):
         result = response(-2, message="查询数据异常。")
     return result
 
+@require_http_methods(["POST"])
+@csrf_exempt
+def task_export_force_cancel(request):
+    """用户请求取消任务"""
+    try:
+        datas = json.loads(request.body.decode())
+        exportJob = PlExportJob.objects.get(task_setting_id=datas["params"]["id"])
+        exportJob.status = 0
+        exportJob.req_stop = 0
+        exportJob.save()
+        result = response()
+    except ObjectDoesNotExist:
+        result = response(-1, message="导出任务不存在")
+    except DatabaseError:
+        result = response(-2, message="查询数据异常。")
+    return result
+
 @require_http_methods(["GET"])
 def export_job_info(request):
     """查询导出任务信息"""
