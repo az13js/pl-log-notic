@@ -150,7 +150,7 @@ PL_PIPLINES = [
 # 后台导出文件的临时目录
 EXPORT_TMP_FLODER="/tmp"
 # 导出文件处理脚本
-EXPORT_FLODER_PROCESS_COMMAND="python3 export_floder_process_script.py"
+EXPORT_FLODER_PROCESS_COMMAND="LD_LIBRARY_PATH=/opt/python381/lib:/opt/sqlite3/lib PYTHONPATH=/opt/python381/lib/python3.8/site-packages PYTHONHOME=/opt/python381 PATH=/opt/python381/bin:$PATH python3 export_floder_process_script.py"
 
 # es地址
 ES_ADDRESS = {

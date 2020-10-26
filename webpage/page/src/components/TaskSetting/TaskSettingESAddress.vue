@@ -13,10 +13,13 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="6">
+      <v-col cols="4">
+        <v-text-field :disabled="isLoading" v-model="urlPrefix" label="ES访问前缀" counter="100" clearable></v-text-field>
+      </v-col>
+      <v-col cols="4">
         <v-select :disabled="isLoading" v-model="sechma" label="ES 访问协议" :items="sechmaList"></v-select>
       </v-col>
-      <v-col cols="6">
+      <v-col cols="4">
         <v-select :disabled="isLoading" v-model="compressSetting" label="压缩" :items="compressList"></v-select>
       </v-col>
     </v-row>
@@ -63,6 +66,14 @@
     set esAddress(v: string) {
       let src: any = JSON.parse(JSON.stringify(this.$store.state.taskSettingInfo));
       src.es_ip = v;
+      this.$store.commit("setTaskSettingInfo", {taskSettingInfo: src});
+    }
+    get urlPrefix(): string {
+      return this.$store.state.taskSettingInfo.url_prefix;
+    }
+    set urlPrefix(v: string) {
+      let src: any = JSON.parse(JSON.stringify(this.$store.state.taskSettingInfo));
+      src.url_prefix = v;
       this.$store.commit("setTaskSettingInfo", {taskSettingInfo: src});
     }
     get kbnVersion(): string {

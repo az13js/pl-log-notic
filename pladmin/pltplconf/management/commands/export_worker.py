@@ -11,6 +11,7 @@ import requests
 import subprocess
 from datetime import datetime
 from django.conf import settings
+from elasticsearch.exceptions import NotFoundError
 from django.core.management.base import BaseCommand
 from pltplconf.management.commands.Parsers.TaskParser import TaskParser
 from pltplconf.management.commands.Collectors.ElasticsearchLongQuery import getEsObject, FakeRequestFromDist, getTimeformate, ElasticsearchLongQuery
@@ -169,6 +170,8 @@ class Command(BaseCommand):
                 if False == self.sendProcess(id, process):
                     return False
         except StopIteration:
+            return True
+        except NotFoundError:
             return True
         return True
 
