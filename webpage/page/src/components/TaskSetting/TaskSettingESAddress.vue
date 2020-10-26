@@ -9,7 +9,7 @@
         <v-text-field :disabled="isLoading" v-model="esAddress" label="IP地址（可不填）" counter="100" clearable></v-text-field>
       </v-col>
       <v-col cols="3">
-        <v-text-field :disabled="isLoading" v-model="esAddress" label="IP地址（可不填）" counter="100" clearable></v-text-field>
+        <v-text-field :disabled="isLoading" v-model="kbnVersion" label="kbn-version" counter="100" clearable></v-text-field>
       </v-col>
       <v-col cols="3">
         <v-text-field :disabled="isLoading" v-model="esPort" label="端口号，可不填" counter="6" clearable></v-text-field>
