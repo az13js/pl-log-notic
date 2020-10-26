@@ -86,8 +86,9 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="6"><v-btn :disabled="isLoading" @click="commitExportJob()" color="primary" block>提交导出</v-btn></v-col>
-      <v-col cols="6"><v-btn :disabled="isLoading" @click="cancelExportJob()" color="red" block>终止导出</v-btn></v-col>
+      <v-col cols="4"><v-btn :disabled="isLoading" @click="commitExportJob()" color="primary" block>提交导出</v-btn></v-col>
+      <v-col cols="4"><v-btn :disabled="isLoading" @click="cancelExportJob()" color="red" block>终止导出</v-btn></v-col>
+      <v-col cols="4"><v-btn :disabled="isLoading" @click="forceCancelExportJob()" color="red" block>强制复位（慎用）</v-btn></v-col>
     </v-row>
   </v-container>
 </template>
@@ -239,6 +240,25 @@
         if (0 == response.data.code) {
           this.$store.commit("showDialog", {message: "导出任务通过集群方式进行分发，由于节点同步信息需要一定的时间间隔，所以需要等待节点停止后才能重新提交任务。\n"
             + "一般这个时间在1分钟以内。", title: "取消成功"});
+        } else {
+          this.$store.commit("showDialog", {message: response.data.message, title: "取消失败"});
+        }
+      }).catch((error: AxiosError): void => {
+        this.isLoading = false;
+        this.$store.commit("showDialog", {message: error.message, title: "请求错误"});
+      });
+    }
+
+    public forceCancelExportJob(): void {
+      this.isLoading = true;
+      axios.post(window.env.apiHost + "/pl/task-export-force-cancel", {
+        params: {
+          id: parseInt("" + this.$store.state.taskSettingInfo.id),
+        }
+      }).then((response: AxiosResponse): void => {
+        this.isLoading = false;
+        if (0 == response.data.code) {
+          this.$store.commit("showDialog", {message: response.data.message, title: "取消成功"});
         } else {
           this.$store.commit("showDialog", {message: response.data.message, title: "取消失败"});
         }

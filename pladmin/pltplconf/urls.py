@@ -20,6 +20,7 @@ urlpatterns = [
     path('pl/task-export-test', api.task_export_test, name='task-export-test'), # 测试导出结果
     path('pl/task-export-commit', api.task_export_commit, name='task-export-commit'), # 提交导出任务
     path('pl/task-export-cancel', api.task_export_cancel, name='task-export-cancel'), # 取消导出任务
+    path('pl/task-export-force-cancel', api.task_export_force_cancel, name='task-export-force-cancel'), # 强制取消导出任务
     path('pl/export-job-info', api.export_job_info, name='export-job-info'), # 查询导出任务信息
     path('pl/communicate/export-commit-jobs', api.export_commit_jobs, name='export-commit-jobs'), # 查询已提交导出任务信息
     path('pl/communicate/worker-recv-export-job', api.worker_recv_export_job, name='worker-recv-export-job'), # Worker接收指定ID的导出任务

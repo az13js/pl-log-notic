@@ -99,8 +99,16 @@ def getEsObject(request):
         kbnVersion = datas["params"]["kbn_version"]
     if kbnVersion is None:
         kbnVersion = ""
+
+    urlPrefix = ""
+    if "url_prefix" in datas["params"]:
+        urlPrefix = datas["params"]["url_prefix"]
+    if urlPrefix is None or "" == urlPrefix:
+        h = {"host": ip, "port": port}
+    else:
+        h = {"host": ip, "port": port, "url_prefix": urlPrefix}
     return Elasticsearch(
-        [{"host": ip, "port": port, "url_prefix": "elasticsearch"}],
+        [h],
         headers={"kbn-version":kbnVersion,"Host":datas["params"]["es_host"],"User-Agent":"Mozilla/5.0 Gecko/20100101 Firefox/68.0","Referer":"https://"+datas["params"]["es_host"]+"/app/kibana"},
         timeout=120,
         http_compress=compress,
