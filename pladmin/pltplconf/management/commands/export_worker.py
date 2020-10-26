@@ -56,11 +56,11 @@ class Command(BaseCommand):
             cacheTime = os.environ["CACHETIME"]
 
         authUser = ""
-        if "USER" in in os.environ:
+        if "USER" in os.environ:
             authUser = os.environ["USER"]
 
         password = ""
-        if "PASSWORD" in in os.environ:
+        if "PASSWORD" in os.environ:
             password = os.environ["PASSWORD"]
 
         self.stdout.write(self.style.SUCCESS(
