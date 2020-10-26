@@ -22,5 +22,5 @@ class TaskAnalysis():
             getEsObject(FakeRequest(job.task_setting)),
             job.task_setting.query_type,
             job.task_setting.query_string,
-            datetime.now(timezone.utc) - timedelta(seconds=job.delay_sec)
+            datetime.now() - timedelta(seconds=job.delay_sec)
         )
