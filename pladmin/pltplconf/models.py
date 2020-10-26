@@ -47,6 +47,7 @@ class PlTaskSetting(models.Model):
     max_per_hour = models.FloatField("每小时推送限制", default=0.0)
     kbn_version = models.CharField("Kibana版本号", max_length=15, default="")
     url_prefix = models.CharField("前缀", max_length=15, default="elasticsearch")
+    es_port = models.CharField("端口号", max_length=6, default="")
 
     def __str__(self):
         if hasattr(self, "id"):

@@ -79,6 +79,8 @@ def getEsObject(request):
     if "https" == datas["params"]["es_sechma"]:
         port = 443
         ssl = True
+    if "" != datas["params"]["es_port"]:
+        port = int(datas["params"]["es_port"])
     ip = datas["params"]["es_ip"]
     if "" == datas["params"]["es_ip"] or datas["params"]["es_ip"] is None:
         ip = datas["params"]["es_host"]

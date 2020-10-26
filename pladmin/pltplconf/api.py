@@ -146,6 +146,7 @@ def task_save_info(request):
         task.max_per_hour = datas["params"]["max_per_hour"]
         task.kbn_version = datas["params"]["kbn_version"]
         task.url_prefix = datas["params"]["url_prefix"]
+        task.es_port = datas["params"]["es_port"]
         job = Pljob.objects.get(task_setting=task)
         job.delay_sec = task.delay_sec
         task.save()
