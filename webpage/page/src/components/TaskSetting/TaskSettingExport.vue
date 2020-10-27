@@ -90,6 +90,9 @@
       <v-col cols="4"><v-btn :disabled="isLoading" @click="cancelExportJob()" color="red" block>终止导出</v-btn></v-col>
       <v-col cols="4"><v-btn :disabled="isLoading" @click="forceCancelExportJob()" color="red" block>强制复位（慎用）</v-btn></v-col>
     </v-row>
+    <v-row>
+      <v-col cols="12"><v-alert type="info">导出功能需要配置支持游标，而通过Kibana的地址访问可能会因为游标功能限制而导致导出进度在开始时停止。如果您在使用时发现这种情况请修改配置为真正的Elasticsearch服务地址后保存配置，重新导出。</v-alert></v-col>
+    </v-row>
   </v-container>
 </template>
 
