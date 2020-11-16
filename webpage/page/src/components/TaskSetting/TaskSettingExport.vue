@@ -57,6 +57,11 @@
                     <v-textarea :disabled="isLoading" v-model="testExportResult" label="测试导出结果" clearable></v-textarea>
                   </v-col>
                 </v-row>
+                <v-row>
+                  <v-col cols="12">
+                    <v-select :disabled="isLoading" v-model="useScroll" label="使用游标" :items="useScrollList"></v-select>
+                  </v-col>
+                </v-row>
               </v-container>
             </v-list-item-content>
           </v-list-group>
@@ -113,7 +118,8 @@
         startTime: this.startTime,
         endDate: this.endDate,
         endTime: this.endTime,
-        template: this.template
+        template: this.template,
+        useScroll: this.useScroll
       });
     }
 
@@ -126,7 +132,8 @@
         startTime: v,
         endDate: this.endDate,
         endTime: this.endTime,
-        template: this.template
+        template: this.template,
+        useScroll: this.useScroll
       });
     }
 
@@ -139,7 +146,8 @@
         startTime: this.startTime,
         endDate: v,
         endTime: this.endTime,
-        template: this.template
+        template: this.template,
+        useScroll: this.useScroll
       });
     }
 
@@ -152,7 +160,8 @@
         startTime: this.startTime,
         endDate: this.endDate,
         endTime: v,
-        template: this.template
+        template: this.template,
+        useScroll: this.useScroll
       });
     }
 
@@ -162,7 +171,8 @@
         startTime: this.startTime,
         endDate: this.endDate,
         endTime: this.endTime,
-        template: v
+        template: v,
+        useScroll: this.useScroll
       });
     }
     get template(): string {
@@ -190,6 +200,25 @@
     public endPicker: boolean = false
     public endTimePicker: boolean = false
     public testExportResult: string = ""
+
+    public useScrollList: any = [
+      {text:"是",value:1},
+      {text:"否",value:0}
+    ]
+
+    set useScroll(v: number) {
+      this.$store.commit("setExportSetting", {
+        startDate: this.startDate,
+        startTime: this.startTime,
+        endDate: this.endDate,
+        endTime: this.endTime,
+        template: this.template,
+        useScroll: v
+      });
+    }
+    get useScroll(): number {
+      return this.$store.state.exportSetting.useScroll;
+    }
 
     public exportTest(): void {
       this.isLoading = true;
