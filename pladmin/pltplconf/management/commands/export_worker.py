@@ -171,7 +171,7 @@ class Command(BaseCommand):
                 runTime = runTime + 1
                 # 使用游标的情况下可以从返回数据中尝试获得总数
                 if useScroll and "hits" in distResult and "total" in distResult["hits"] and total is None:
-                    if "value" in distResult["hits"]["total"]:
+                    if not isinstance(distResult["hits"]["total"], int): # 新版本kibana这个地方返回的是一个对象，里面含有value
                         total = int(distResult["hits"]["total"]["value"])
                     else:
                         total = int(distResult["hits"]["total"])
