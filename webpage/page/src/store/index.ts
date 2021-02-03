@@ -25,7 +25,8 @@ const opts = {
       startTime: "",
       endDate: "",
       endTime: "",
-      template: ""
+      template: "",
+      useScroll: 1
     },
     exportInfo: {
       workerName: "",
@@ -77,6 +78,7 @@ const opts = {
       state.exportSetting.endDate = playload.endDate;
       state.exportSetting.endTime = playload.endTime;
       state.exportSetting.template = playload.template;
+      state.exportSetting.useScroll = playload.useScroll;
     },
     initSuccess(state: any, playload: any): void {
       state.init = true;

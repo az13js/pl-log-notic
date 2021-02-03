@@ -140,7 +140,16 @@ class Command(BaseCommand):
         # 暂时就按照东8区来算，反正老外不可能用我这个系统的
         startTime = datetime.fromisoformat(exportSettingDist["startDate"] + "T" + exportSettingDist["startTime"] + "+08:00")
         endTime = datetime.fromisoformat(exportSettingDist["endDate"] + "T" + exportSettingDist["endTime"] + "+08:00")
+        diffTime = endTime - startTime # 这是deltatime对象
         fakeRequest = FakeRequestFromDist(taskSettingDist)
+        # 新增参数，判断是否要用游标
+        if "useScroll" in exportSettingDist and 1 == exportSettingDist["useScroll"]:
+            useScroll = True
+        else:
+            useScroll = False
+        if diffTime.total_seconds() < 0:
+            return False
+
         #es = getEsObject(fakeRequest)
         # 计算要导出的数据的总数，用来计算导出的进度（不可用，暂时不这样计算了）
         #total = es.count(
@@ -151,11 +160,21 @@ class Command(BaseCommand):
         #)
         total = None
         exportNum = 0
+        # 增加一个变量计算当前走了多少次迭代
+        runTime = 0
         i = 0
+        if not useScroll:
+            total = diffTime.total_seconds() / 2
+
         try:
-            for distResult in ElasticsearchLongQuery(fakeRequest, self._cacheTime, startTime, endTime):
-                if "hits" in distResult and "total" in distResult["hits"] and total is None:
-                    total = int(distResult["hits"]["total"])
+            for distResult in ElasticsearchLongQuery(fakeRequest, self._cacheTime, startTime, endTime, useScroll):
+                runTime = runTime + 1
+                # 使用游标的情况下可以从返回数据中尝试获得总数
+                if useScroll and "hits" in distResult and "total" in distResult["hits"] and total is None:
+                    if not isinstance(distResult["hits"]["total"], int): # 新版本kibana这个地方返回的是一个对象，里面含有value
+                        total = int(distResult["hits"]["total"]["value"])
+                    else:
+                        total = int(distResult["hits"]["total"])
                 message = TaskParser().parseDist(taskSettingDist, json.dumps(distResult).encode("utf-8").decode("unicode_escape"), exportSettingDist["template"])
                 with open(self._floder + os.sep + str(i) + ".txt", "w") as fw:
                     fw.write(message)
@@ -165,6 +184,8 @@ class Command(BaseCommand):
                     process = exportNum / total
                 else:
                     process = i / 10000
+                if not useScroll:
+                    process = runTime / total
                 if process > 0.99:
                     process = 0.99
                 if False == self.sendProcess(id, process):

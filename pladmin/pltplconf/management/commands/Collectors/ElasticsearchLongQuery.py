@@ -3,33 +3,58 @@
 from elasticsearch import Elasticsearch
 from django.forms.models import model_to_dict
 import json
+from datetime import timedelta
 
 class ElasticsearchLongQuery:
-    """应对需要大量数据导出处理"""
-
+    """应对需要大量数据导出处理
+    使用参考：
+        taskSetting = PlTaskSetting.objects.get(id=9)
+        fakeRequestTaskSetting = FakeRequest(taskSetting)
+        startTime = datetime.fromisoformat("2020-11-01T00:00:00+08:00")
+        endTime = datetime.fromisoformat("2020-11-16T00:00:00+08:00")
+        try:
+            for distResult in ElasticsearchLongQuery(fakeRequestTaskSetting, "1m", startTime, endTime, False):
+                print(len(distResult["hits"]["hits"]))
+        except StopIteration:
+            print("Stop");
+            return True
+        print("Finish");
+        return True
+    """
     _lastScrollId = ""
     _lastQueryResult = {}
 
-    def __init__(self, request, cacheTime, startTime, endTime):
+    def __init__(self, request, cacheTime, startTime, endTime, useScroll=True):
+        """
+            可以用迭代的方式从ES中查询大量的数据，以便做后续处理。
+        参数：
+            request: FakeRequest或者http请求进来的request变量
+            cacheTime: 字符串，类似 1m 或者 3m 这种传递给es的游标生存时间
+            startTime: 查询的开始时间，是一个datetime对象，传递给ES会假设当前时区是东八区
+            startTime: 查询的结束时间，是一个datetime对象，传递给ES会假设当前时区是东八区
+            useScroll: 是否采用游标，False的时候使用2秒的时间差渐进搜索
+        """
         self._esObject = getEsObject(request)
         self._request = request
         self._cacheTime = cacheTime
         self._startTime = startTime
         self._endTime = endTime
+        self._useScroll = useScroll
+        self._timedelta = endTime - startTime
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        if "" == self._lastScrollId:
+        # 需要使用游标但是又没有游标时，做首次查询
+        if self._useScroll and "" == self._lastScrollId:
             self._lastQueryResult = self.firstQuery()
             self._lastScrollId = self._lastQueryResult["_scroll_id"]
             if 0 == len(self._lastQueryResult["hits"]["hits"]):
                 raise StopIteration()
             return self._lastQueryResult
         self._lastQueryResult = self.nextQuery()
-        #self._lastScrollId = self._lastQueryResult["_scroll_id"]
-        if 0 == len(self._lastQueryResult["hits"]["hits"]):
+        if self._useScroll and 0 == len(self._lastQueryResult["hits"]["hits"]):
             raise StopIteration()
         return self._lastQueryResult
 
@@ -40,12 +65,21 @@ class ElasticsearchLongQuery:
 
     def nextQuery(self):
         """执行非首次 ES 查询"""
+        if not self._useScroll:
+            datas = json.loads(self._request.body.decode())
+            return self._esObject.search(index=datas["params"]["query_type"], q=self.queryString(), ignore_unavailable=True, analyze_wildcard=True, size=1000, terminate_after=1000000, track_scores=False)
         return self._esObject.scroll(scroll_id = self._lastScrollId, scroll = self._cacheTime)
 
     def queryString(self):
         datas = json.loads(self._request.body.decode())
         """获取查询的语句"""
-        queryTime = "[" + getTimeformate(self._startTime) + " TO " + getTimeformate(self._endTime) + "]"
+        if self._useScroll:
+            queryTime = "[" + getTimeformate(self._startTime) + " TO " + getTimeformate(self._endTime) + "]"
+        else:
+            if self._endTime - self._timedelta >= self._endTime:
+                raise StopIteration()
+            queryTime = "[" + getTimeformate(self._endTime - self._timedelta) + " TO " + getTimeformate(self._endTime - self._timedelta + timedelta(seconds = 2)) + "]"
+            self._timedelta = self._timedelta - timedelta(seconds = 2)
         if "" == datas["params"]["query_string"] or datas["params"]["query_string"] is None:
             return "@timestamp:" + queryTime + " OR timestamp:" + queryTime
         else:
