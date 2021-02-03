@@ -46,6 +46,28 @@
 
 默认情况下使用的是`sqlite3`本地数据库，数据库文件位于`pladmin/db.sqlite3`。
 
+#### 使用MySQL？
+
+如果使用MySQL需要进行一些调整。
+
+一，调整配置文件，默认配置文件位于`pladmin/pladmin/settings.py`，除非自定义修改了配置文件路径。
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql', # 数据库引擎
+            'NAME': 'test_001', # 数据库名
+            'USER': 'root', # 账号
+            'PASSWORD': 'PASSWORD', # 密码
+            'HOST': '127.0.0.1', # HOST
+            'POST': 3306, # 端口
+        }
+    }
+
+二，修改代码，在`pladmin/pltplconf/__init__.py`，导入plmysql并设置：
+
+    import pymysql
+    pymysql.install_as_MySQLdb()
+
 ### 启动定时任务
 
     cd pladmin
