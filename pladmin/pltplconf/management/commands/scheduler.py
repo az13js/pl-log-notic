@@ -49,14 +49,13 @@ class Command(BaseCommand):
     def handleJob(self, job):
         """处理任务的具体逻辑"""
         for pipline in self.pipLineModules:
-            pipline.handle(job)
+            try:
+                pipline.handle(job)
+            except Exception as e:
+                self.stdout.write(self.style.ERROR("handleJob失败，出现异常。" + str(e)))
 
     def initModules(self):
         """实例化配置的流水线类"""
         for mod in settings.PL_PIPLINES:
             piplineClass = getattr(importlib.import_module(mod), mod.split('.')[-1])
             self.pipLineModules.append(piplineClass())
-
-
-
-
