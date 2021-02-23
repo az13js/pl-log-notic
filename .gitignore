@@ -31,3 +31,5 @@ webpage/node_modules
 webpage/package-lock.json
 webpage/public
 
+# 忽略模块目录
+package
