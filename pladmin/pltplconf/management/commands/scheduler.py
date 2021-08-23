@@ -1,13 +1,14 @@
 # -*- coding: utf8 -*-
 
 from django.core.management.base import BaseCommand, CommandError
-from django.db.utils import OperationalError
+from django.db.utils import OperationalError, InterfaceError
 from pltplconf.models import Pljob
 from django.utils import timezone
 from datetime import timedelta
 import time
 from django.conf import settings
 import importlib
+from django.db import close_old_connections
 
 class Command(BaseCommand):
     help = "开启定时任务"
@@ -32,6 +33,7 @@ class Command(BaseCommand):
                     # 更新job数据
                     job.last_exec_time = now_time
                     job.next_exec_time = job.last_exec_time + timedelta(seconds=job.delay_sec)
+                    close_old_connections()
                     job.save()
                     # 执行job
                     self.handleJob(job)
@@ -44,7 +46,9 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.SUCCESS("暂停 " + str(stop_time_second) + " 秒"))
                     time.sleep(stop_time_second) # 暂停一段时间，可能凑够self.delay_sec秒
             except OperationalError as e:
-                self.stdout.write(self.style.ERROR("循环处理任务失败，出现错误：" + str(e)))
+                self.stdout.write(self.style.ERROR("循环处理任务失败，出现错误（OperationalError）：" + str(e)))
+            except InterfaceError as e:
+                self.stdout.write(self.style.ERROR("循环处理任务失败，出现错误（InterfaceError）：" + str(e)))
             except KeyboardInterrupt:
                 self.stdout.write(self.style.SUCCESS("停止执行"))
                 exit(0)
