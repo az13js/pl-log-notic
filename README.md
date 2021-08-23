@@ -85,6 +85,7 @@
             'PASSWORD': 'PASSWORD', # 密码
             'HOST': '127.0.0.1', # HOST
             'POST': 3306, # 端口
+            'CONN_MAX_AGE': 60 # 数据库连接维持时间
         }
     }
 
