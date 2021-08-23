@@ -28,6 +28,7 @@ class Command(BaseCommand):
                 exec_num = 0 # 计算job数量
 
                 now_time = timezone.now() # 当前时间
+                close_old_connections()
                 for job in Pljob.objects.filter(next_exec_time__lte=now_time):
                     exec_num = exec_num + 1
                     # 更新job数据
