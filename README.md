@@ -39,6 +39,31 @@
 
     pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 
+#### 关于依赖项和安装的包的位置相关问题
+
+特殊情况下，可能需要把包安装在特定的位置，这时通过指定`--target`选项来实现，例如指定当前目录下的`package`目录：
+
+    pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt --target=package
+
+也可以相对路径或者绝对路径：
+
+    pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt --target=./my_package
+    pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt --target=/tmp/my_package
+
+启动`python`命令时就需要指定一个环境变量，`PYTHONPATH`，如：
+
+    PYTHONPATH=package python
+
+这时模块路径就能包含当前目录的`package`目录：
+
+    $ PYTHONPATH=package python
+    Python 3.8.5 (default, Jul 28 2020, 12:59:40) 
+    [GCC 9.3.0] on linux
+    Type "help", "copyright", "credits" or "license" for more information.
+    >>> import sys
+    >>> sys.path
+    ['', '/home/az13js/pl-log-notic/package', '/usr/lib/python38.zip', '/usr/lib/python3.8', '/usr/lib/python3.8/lib-dynload', '/home/az13js/.local/lib/python3.8/site-packages', '/usr/local/lib/python3.8/dist-packages', '/usr/lib/python3/dist-packages']
+
 ### 初始化数据库的表
 
     cd pladmin
