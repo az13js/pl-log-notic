@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 
+import redis
 from django.core.management.base import BaseCommand, CommandError
 from django.db.utils import OperationalError, InterfaceError
 from pltplconf.models import Pljob
@@ -19,7 +20,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """间隔若干秒钟，持续执行定时任务"""
         self.stdout.write(self.style.SUCCESS("启动定时任务"))
-
+        self.initRedis()
         self.initModules()
 
         last_run_time = timezone.now()
@@ -30,6 +31,8 @@ class Command(BaseCommand):
                 now_time = timezone.now() # 当前时间
                 close_old_connections()
                 for job in Pljob.objects.filter(next_exec_time__lte=now_time):
+                    if not self.requireLock(job): # 在集群部署的时候，多个命令实例同时执行。这里通过锁的方式令一个job同时只能被一个命令实例执行
+                        continue
                     exec_num = exec_num + 1
                     # 更新job数据
                     job.last_exec_time = now_time
@@ -67,3 +70,27 @@ class Command(BaseCommand):
         for mod in settings.PL_PIPLINES:
             piplineClass = getattr(importlib.import_module(mod), mod.split('.')[-1])
             self.pipLineModules.append(piplineClass())
+
+    def initRedis(self):
+        """初始化和配置_redis实例"""
+        if not hasattr(settings, "REDIS_SETTING"): # 如果用户从旧版本升级，那么配置文件不包含这个配置，这里得判断有没有这个新配置
+            self._redis = None
+            return
+        if settings.REDIS_SETTING["host"] is None:
+            self._redis = None
+            return
+        if settings.REDIS_SETTING["unix_socket_path"] is not None:
+            self._redis = redis.Redis(unix_socket_path=settings.REDIS_SETTING["unix_socket_path"])
+            return
+        self._redis = redis.Redis(host=settings.REDIS_SETTING["host"], port=settings.REDIS_SETTING["port"], db=settings.REDIS_SETTING["db"])
+
+    def requireLock(self, job):
+        """ 获取一个锁 """
+        if self._redis is None: # 如果单机器无须启用Redis，那么认为这个锁都获取成功
+            return True
+        try:
+            return self._redis.set("pl_" + str(job.id), "1", ex=1, nx=True)
+        except Exception as e:
+            self.stdout.write(self.style.ERROR("Redis操作异常：" + str(e)))
+            self.initRedis()
+        return False
