@@ -98,6 +98,13 @@ DATABASES = {
     }
 }
 
+# 配置Redis服务连接地址，如果不需要使用redis，设置host为None即可
+REDIS_SETTING = {
+    'host': None, # 修改为IP或主机
+    'port': 6379,
+    'db': 0,
+    'unix_socket_path': None # 如果这里不为None，那么在使用redis时会优先使用socket
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators

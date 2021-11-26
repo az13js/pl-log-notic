@@ -139,3 +139,11 @@
     $ WORKER_NAME=local-worker-01 HOST=pl-log-notic.az13js.cn IP=127.0.0.1 PORT=9210 CACHETIME=1m python3 manage.py export_worker
 
 该命令需要使用一些手段防止因为程序异常退出。在单机模式下，导出的文件会保存到`pladmin/pltplconf/static`文件夹，可以在页面上下载。在以多个Worker作为集群部署的时候，如果部署在不同的服务器上那么可能无法下载到导出的文件。这种情况下请参考`pladmin/export_floder_process_script.py`脚本编写一个上传到专门的文件服务的命令，然后修改配置文件里面的`EXPORT_FLODER_PROCESS_COMMAND`参数。Worker进程会在导出ES数据完成的时候，将数据所在的文件夹作为第一个参数传给`EXPORT_FLODER_PROCESS_COMMAND`配置的命令，然后把命令输出的内容作为下载的链接通过Web服务保存起来，然后在页面被用户看到。
+
+## 作为集群部署
+
+无论Web服务、scheduler服务或者导出节点，都可以支持以集群的方式分开部署在个服务器上。因为默认的配置是针对单机部署的，所以需要按照下面的方式调整一些配置：
+
+1. 导出节点集群部署需要参考`pladmin/export_floder_process_script.py`脚本编写一个上传到专门的文件服务的命令，然后修改配置文件里面的`EXPORT_FLODER_PROCESS_COMMAND`参数）
+2. scheduler服务集群部署需要Redis服务，然后修改配置文件中的`REDIS_SETTING`
+3. Web服务集群部署需要单独部署数据库，参考上面的MySQL配置说明
