@@ -1,3 +1,5 @@
+
+
 # pl-log-notic
 
 这是一个通过读取 Elasticsearch 中收集的错误日志，发送消息到企业微信来实现生产系统错误提醒的预警系统。下面介绍如何安装部署。
@@ -84,12 +86,12 @@
             'USER': 'root', # 账号
             'PASSWORD': 'PASSWORD', # 密码
             'HOST': '127.0.0.1', # HOST
-            'POST': 3306, # 端口
+            'PORT': 3306, # 端口
             'CONN_MAX_AGE': 60 # 数据库连接维持时间
         }
     }
 
-二，修改代码，在`pladmin/pltplconf/__init__.py`，导入plmysql并设置：
+二，修改代码，在`pladmin/pltplconf/__init__.py`，导入pymysql并设置：
 
     import pymysql
     pymysql.install_as_MySQLdb()
